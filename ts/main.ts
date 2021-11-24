@@ -1,8 +1,8 @@
 //======================================================================================================================
 // INITIALIZATION
 const canvas = <HTMLCanvasElement>document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const maxDimension = Math.min(window.innerHeight*.8, window.innerHeight*.9);
+const ctx = canvas.getContext('2d')!;
+const maxDimension = Math.floor(Math.min(window.innerHeight*.8, window.innerHeight*.9));
 
 const height = maxDimension;
 const width = maxDimension;
@@ -29,6 +29,13 @@ type PxCoord = {
 
 
     //==================================================================================================================
+    function toRadians(angleDegs: number): number {
+        return angleDegs * (Math.PI / 180);
+    } // toRadians ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
     /**
      * Copy the value of a pixel at PxCoord c1 on ImageData id1 to PxCoord c2 on ImageData id2.
      * 
@@ -51,7 +58,9 @@ type PxCoord = {
      * @params See documentation.
      * @returns A number[]: [a, b, c, d, e, f]
      */
-    function createAffineMatrix(r: number, s: number, theta: number, phi: number, e: number, f: number): number[] {
+    function createAffineMatrix(r: number, s: number, thetaD: number, phiD: number, e: number, f: number): number[] {
+        var theta = toRadians(thetaD);
+        var phi = toRadians(phiD);
         return [r*Math.cos(theta), -s*Math.sin(phi), r*Math.sin(theta), s*Math.cos(phi), e*width, f*height];
     } // createAffineMatrix
     //==================================================================================================================
@@ -69,12 +78,19 @@ type PxCoord = {
         if (det == 0) throw new Error("Attempted to invert noninvertible affine matrix.");
         var invDet = 1/det;
         return [invDet*affineMatrix[3], -invDet*affineMatrix[1], -invDet*affineMatrix[2], invDet*affineMatrix[0], 
-                -affineMatrix[4], -affineMatrix[5]];
+                invDet*(affineMatrix[1]*affineMatrix[5] - affineMatrix[3]*affineMatrix[4]),
+                invDet*(affineMatrix[2]*affineMatrix[4] - affineMatrix[0]*affineMatrix[5])];
     } // invertAffineMatrix()
     //==================================================================================================================
 
 
     //==================================================================================================================
+    /**
+     * Get an ImageData object representing the next iteration of the IFS based on the provided affine transformation.
+     * 
+     * @param matrices Affine transform matrices representing the IFS.
+     * @returns The ImageData transformed according to the IFS.
+     */
     function getTransformedImageData(matrices: number[][]): ImageData {
         var iD = ctx.createImageData(width, height);
         var oldID = ctx.getImageData(0, 0, width, height);
@@ -97,6 +113,13 @@ type PxCoord = {
 
 
     //==================================================================================================================
+    /**
+     * Apply the affine transformation represented by the given matrix to the given coordinate.
+     * 
+     * @param matrix The matrix representing the affine transformation.
+     * @param c A PxCoord representing the coordinate that we would like to transform.
+     * @returns A PXCoord of the transformed coordinate c.
+     */
     function applyAffineMatrix(matrix: number[], c: PxCoord): PxCoord {
         var c2: PxCoord = {
             x: Math.floor(matrix[0]*c.x + matrix[1]*c.y + matrix[4]),
@@ -107,33 +130,34 @@ type PxCoord = {
     //==================================================================================================================
 
 
-    //==================================================================================================================
-    var affineMatrices = [
-        createAffineMatrix(0.5, 0.5, 0, 0, 0, 0.5),
-        createAffineMatrix(0.5, 0.5, 0, 0, 0.5, 0),
-        createAffineMatrix(0.5, 0.5, 0, 0, 0,   0)
-    ];
-
-    var inverseAffineMatrices = [
-        invertAffineMatrix(affineMatrices[0]),
-        invertAffineMatrix(affineMatrices[1]),
-        invertAffineMatrix(affineMatrices[2]),
-    ];
-    //==================================================================================================================
-
+//======================================================================================================================
+// END FUNCTIONS
+//======================================================================================================================
 
 
 
 //======================================================================================================================
+var affineMatrices: number[][] = [
+    createAffineMatrix(0.5, 0.5, 0, 0, 0, 0),
+    createAffineMatrix(0.5, 0.5, 0, 0, 0, 0.5),
+    createAffineMatrix(0.5, 0.5, 0, 0, 0.5, 0),
+];
+
+var inverseAffineMatrices: number[][] = [];
+affineMatrices.forEach(matrix => {
+    inverseAffineMatrices.push(invertAffineMatrix(matrix));
+});
+
 ctx.fillStyle = "red";
+ctx.rect(width/4, height/4, width/2, height/2);
 ctx.rect(0, 0, width, height);
 ctx.fill();
 
 function runIteration() {
-    console.log("test");
     var transImageData = getTransformedImageData(inverseAffineMatrices);
     ctx.putImageData(transImageData, 0, 0);
 }
 
-document.getElementById("runIter").onclick = runIteration;
+var runIterButton = document.getElementById("runIter")!;
+runIterButton.onclick = runIteration;
 //======================================================================================================================
