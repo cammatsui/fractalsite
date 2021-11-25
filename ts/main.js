@@ -2,7 +2,7 @@
 // INITIALIZATION
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-var maxDimension = Math.floor(Math.min(window.innerHeight * .8, window.innerHeight * .9));
+var maxDimension = Math.floor(Math.min(window.innerHeight * .7, window.innerHeight * .9));
 var height = maxDimension;
 var width = maxDimension;
 canvas.height = height;
@@ -46,7 +46,6 @@ var DetIFS = /** @class */ (function () {
         var transformedImageData = this.getTransformedImageData();
         this.ctx.putImageData(transformedImageData, 0, 0);
         this.numIters++;
-        console.log(this.numIters);
     }; // applyTransform ()
     //==============================================================================================================
     //==============================================================================================================
@@ -65,13 +64,33 @@ var DetIFS = /** @class */ (function () {
         var oldID = this.ctx.getImageData(0, 0, width, height);
         for (var x = 0; x < this.width; x++) {
             for (var y = 0; y < this.height; y++) {
+                var coordTo = { x: x, y: y };
+                var transformedPx = [];
                 this.affineTransformMatrices.forEach(function (matrix) {
-                    var coordTo = { x: x, y: y };
                     var coordFrom = DetIFS.applyAffineMatrix(matrix, coordTo);
                     if (coordFrom.x >= 0 && coordFrom.x < width && coordFrom.y >= 0 && coordFrom.y < height) {
-                        if ((coordFrom.y * width + coordFrom.x) * 4 + 4 > 0) // alpha > 0
-                            _this.copyPixel(oldID, coordFrom, iD, coordTo);
+                        var oldDataIdx = (coordFrom.x * width + coordFrom.y) * 4;
+                        //transformedPx.push({
+                        //    r: oldID.data[oldDataIdx],
+                        //    g: oldID.data[oldDataIdx+1],
+                        //    b: oldID.data[oldDataIdx+2],
+                        //    a: oldID.data[oldDataIdx+3],
+                        //})
+                        //if (oldID.data[(coordFrom.x*width + coordFrom.y)*4 + 3] > 0 && 
+                        //    iD.data[(coordTo.x*width + coordTo.y)*4 + 3] == 0) {
+                        //if (iD.data[(coordm.x*width + coordFrom.y)*4 + 3] > 0) // alpha > 0
+                        _this.copyPixel(oldID, coordFrom, iD, coordTo);
                     }
+                    //for (var i = 0; i < transformedPx.length; i++) {
+                    //var tPx = transformedPx[i];
+                    //if (tPx.a > 0) {
+                    //iD.data[(coordTo.x*width + coordTo.y)+4] = tPx.r;
+                    //iD.data[(coordTo.x*width + coordTo.y)+4+1] = tPx.g;
+                    //iD.data[(coordTo.x*width + coordTo.y)+4+2] = tPx.b;
+                    //iD.data[(coordTo.x*width + coordTo.y)+4+3] = tPx.a;
+                    //break;
+                    //}
+                    //}
                 });
             }
         }
@@ -183,10 +202,62 @@ var affineParams = [
 function runIteration() { detIFS.applyTransform(); }
 ;
 ctx.fillStyle = "blue";
+//ctx.rect(0, 0, width, height);
 ctx.rect(width / 4, height / 4, width / 2, height / 2);
-ctx.rect(0, 0, width, height);
 ctx.fill();
 var detIFS = new DetIFS(ctx, width, height, affineParams);
+var detIFS = createIFSFromTable();
 var runIterButton = document.getElementById("runIter");
 runIterButton.onclick = runIteration;
+//======================================================================================================================
+//======================================================================================================================
+// TABLE TEST
+function addRow() {
+    var affineTable = document.getElementById("affineTable");
+    var nRows = affineTable.rows.length;
+    var row = affineTable.insertRow(nRows);
+    for (var i = 0; i < 6; i++) {
+        var cell = row.insertCell(i);
+        cell.contentEditable = "true";
+        cell.innerHTML = "0";
+    }
+} // addRow ()
+function deleteLastRow() {
+    var affineTable = document.getElementById("affineTable");
+    var nRows = affineTable.rows.length;
+    if (nRows > 2) {
+        affineTable.deleteRow(nRows - 1);
+    }
+} // deleteLastRow ()
+function createIFSFromTable() {
+    var affineTable = document.getElementById("affineTable");
+    var affineParams = [];
+    var nRows = affineTable.rows.length;
+    for (var i = 1; i < nRows; i++) {
+        var row = affineTable.rows[i];
+        var thisRowParam = {
+            r: +row.cells[0].innerHTML,
+            s: +row.cells[1].innerHTML,
+            thetaD: +row.cells[2].innerHTML,
+            phiD: +row.cells[3].innerHTML,
+            e: +row.cells[4].innerHTML,
+            f: +row.cells[5].innerHTML
+        };
+        affineParams.push(thisRowParam);
+    }
+    var detIFS = new DetIFS(ctx, width, height, affineParams);
+    return detIFS;
+} // createIFSFromTable ()
+function resetIFS() {
+    ctx.fillStyle = "blue";
+    ctx.rect(0, 0, width, height);
+    ctx.fill();
+    detIFS = createIFSFromTable();
+} // resetIFS ()
+var addRowButton = document.getElementById("addRow");
+addRowButton.onclick = addRow;
+var delRowButton = document.getElementById("delRow");
+delRowButton.onclick = deleteLastRow;
+var resetIFSButton = document.getElementById("resIFS");
+resetIFSButton.onclick = resetIFS;
 //======================================================================================================================
