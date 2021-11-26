@@ -1,12 +1,6 @@
 //======================================================================================================================
-// INITIALIZATION
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-var maxDimension = Math.floor(Math.min(window.innerHeight * .7, window.innerHeight * .9));
-var height = maxDimension;
-var width = maxDimension;
-canvas.height = height;
-canvas.width = width;
+// TYPES
+//======================================================================================================================
 //==================================================================================================================
 //==================================================================================================================
 /**
@@ -68,29 +62,13 @@ var DetIFS = /** @class */ (function () {
                 var transformedPx = [];
                 this.affineTransformMatrices.forEach(function (matrix) {
                     var coordFrom = DetIFS.applyAffineMatrix(matrix, coordTo);
+                    _this.convertCoord(coordTo);
+                    _this.convertCoord(coordFrom);
                     if (coordFrom.x >= 0 && coordFrom.x < width && coordFrom.y >= 0 && coordFrom.y < height) {
                         var oldDataIdx = (coordFrom.x * width + coordFrom.y) * 4;
-                        //transformedPx.push({
-                        //    r: oldID.data[oldDataIdx],
-                        //    g: oldID.data[oldDataIdx+1],
-                        //    b: oldID.data[oldDataIdx+2],
-                        //    a: oldID.data[oldDataIdx+3],
-                        //})
-                        //if (oldID.data[(coordFrom.x*width + coordFrom.y)*4 + 3] > 0 && 
-                        //    iD.data[(coordTo.x*width + coordTo.y)*4 + 3] == 0) {
-                        //if (iD.data[(coordm.x*width + coordFrom.y)*4 + 3] > 0) // alpha > 0
-                        _this.copyPixel(oldID, coordFrom, iD, coordTo);
+                        if (DetIFS.getAlpha(oldID, coordFrom) > 0 || DetIFS.getAlpha(iD, coordTo) == 0)
+                            _this.copyPixel(oldID, coordFrom, iD, coordTo);
                     }
-                    //for (var i = 0; i < transformedPx.length; i++) {
-                    //var tPx = transformedPx[i];
-                    //if (tPx.a > 0) {
-                    //iD.data[(coordTo.x*width + coordTo.y)+4] = tPx.r;
-                    //iD.data[(coordTo.x*width + coordTo.y)+4+1] = tPx.g;
-                    //iD.data[(coordTo.x*width + coordTo.y)+4+2] = tPx.b;
-                    //iD.data[(coordTo.x*width + coordTo.y)+4+3] = tPx.a;
-                    //break;
-                    //}
-                    //}
                 });
             }
         }
@@ -132,8 +110,6 @@ var DetIFS = /** @class */ (function () {
      */
     DetIFS.prototype.copyPixel = function (iD1, c1, iD2, c2) {
         // Convert coordinates of c1 and c2 such that origin is in bottom left.
-        this.convertCoord(c1);
-        this.convertCoord(c2);
         for (var i = 0; i < 4; i++)
             iD2.data[(c2.y * this.width + c2.x) * 4 + i] = iD1.data[(c1.y * this.width + c1.x) * 4 + i];
     }; // copyPixel ()
@@ -143,6 +119,18 @@ var DetIFS = /** @class */ (function () {
     //==============================================================================================================
     //==============================================================================================================
     // STATIC METHODS
+    //==============================================================================================================
+    //==============================================================================================================
+    /**
+     * Get the alpha value of the given PxCoord on the given ImageData.
+     *
+     * @param iD The ImageData to look at.
+     * @param c The coordiante to look at.
+     * @returns The alpha value.
+     */
+    DetIFS.getAlpha = function (iD, c) {
+        return iD.data[(c.y * iD.width + c.x) * 4 + 3];
+    }; // getAlpha ()
     //==============================================================================================================
     //==============================================================================================================
     /**
@@ -194,24 +182,21 @@ var DetIFS = /** @class */ (function () {
 // END TYPES
 //======================================================================================================================
 //======================================================================================================================
-var affineParams = [
-    { r: 0.5, s: 0.5, thetaD: 0, phiD: 0, e: 0, f: 0 },
-    { r: 0.5, s: 0.5, thetaD: 0, phiD: 0, e: 0.5, f: 0 },
-    { r: 0.5, s: 0.5, thetaD: 0, phiD: 0, e: 0, f: 0.5 },
-];
-function runIteration() { detIFS.applyTransform(); }
-;
+// INITIALIZATION
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var maxDimension = Math.floor(Math.min(window.innerHeight * .7, window.innerHeight * .9));
+var height = maxDimension;
+var width = maxDimension;
+canvas.height = height;
+canvas.width = width;
 ctx.fillStyle = "blue";
 ctx.rect(0, 0, width, height);
-//ctx.rect(width/4, height/4, width/2, height/2);
 ctx.fill();
-var detIFS = new DetIFS(ctx, width, height, affineParams);
 var detIFS = createIFSFromTable();
-var runIterButton = document.getElementById("runIter");
-runIterButton.onclick = runIteration;
 //======================================================================================================================
 //======================================================================================================================
-// TABLE TEST
+// BUTTON FUNCTIONS 
 function addRow() {
     var affineTable = document.getElementById("affineTable");
     var nRows = affineTable.rows.length;
@@ -250,10 +235,19 @@ function createIFSFromTable() {
 } // createIFSFromTable ()
 function resetIFS() {
     ctx.fillStyle = "blue";
+    ctx.putImageData(ctx.createImageData(width, height), 0, 0);
     ctx.rect(0, 0, width, height);
     ctx.fill();
     detIFS = createIFSFromTable();
 } // resetIFS ()
+function runIteration() {
+    detIFS.applyTransform();
+} // runIteration ()
+//======================================================================================================================
+//======================================================================================================================
+// BUTTON SETUP
+var runIterButton = document.getElementById("runIter");
+runIterButton.onclick = runIteration;
 var addRowButton = document.getElementById("addRow");
 addRowButton.onclick = addRow;
 var delRowButton = document.getElementById("delRow");
