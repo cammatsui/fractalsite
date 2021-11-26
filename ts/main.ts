@@ -309,8 +309,8 @@ function runIteration() { detIFS.applyTransform(); };
 
 
 ctx.fillStyle = "blue";
-//ctx.rect(0, 0, width, height);
-ctx.rect(width/4, height/4, width/2, height/2);
+ctx.rect(0, 0, width, height);
+//ctx.rect(width/4, height/4, width/2, height/2);
 ctx.fill();
 
 var detIFS: DetIFS = new DetIFS(ctx, width, height, affineParams);
