@@ -21,9 +21,13 @@ var DetIFS = /** @class */ (function () {
         var _this = this;
         this.ctx = ctx;
         this.width = w;
-        this.height = height;
+        this.height = h;
         this.numIters = 0;
         this.affineTransformMatrices = [];
+        var minDrawingDimension = this.findMinDrawingDimension(ctx.getImageData(0, 0, width, height));
+        var minScalingFactor = DetIFS.findMinScalingFactor(transformParams);
+        this.maxIters = this.findMaxIters(minDrawingDimension, minScalingFactor);
+        console.log(this.maxIters);
         transformParams.forEach(function (t) {
             _this.affineTransformMatrices.push(DetIFS.invertAffineMatrix(_this.createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f)));
         });
@@ -33,13 +37,63 @@ var DetIFS = /** @class */ (function () {
     // INSTANCE METHODS
     //==============================================================================================================
     //==============================================================================================================
+    DetIFS.findMinScalingFactor = function (transformParams) {
+        var min = Number.MAX_VALUE;
+        transformParams.forEach(function (t) {
+            if (t.r < min)
+                min = t.r;
+            if (t.s < min)
+                min = t.s;
+        });
+        return min;
+    }; // findMinScalingFactor ()
+    //==============================================================================================================
+    //==============================================================================================================
+    DetIFS.prototype.findMaxIters = function (minDim, minScalingFactor) {
+        // if square of minDim, how many times can we multiply by minScalingFactor to get to 1?
+        //  i = log_{minScalingFactor}(1/minDim)
+        var pctIDFill = minDim / Math.min(this.width, this.height);
+        return Math.ceil(Math.log(1 / minDim) / Math.log(minScalingFactor));
+    }; // findMaxIters ()
+    //==============================================================================================================
+    //==============================================================================================================
+    /**
+     * Find the minimum
+     *
+     * @param ctx
+     */
+    DetIFS.prototype.findMinDrawingDimension = function (iD) {
+        var minX = this.width;
+        var maxX = 0;
+        var minY = this.height;
+        var maxY = 0;
+        for (var x = 0; x < this.width; x++) {
+            for (var y = 0; y < this.height; y++) {
+                if (iD.data[(y * iD.width + x) * 4 + 3] != 0) {
+                    if (x < minX)
+                        minX = x;
+                    if (x > maxX)
+                        maxX = x;
+                    if (y < minY)
+                        minY = y;
+                    if (y > maxY)
+                        maxY = y;
+                }
+            }
+        }
+        return Math.min(maxX - minX, maxY - minY);
+    }; // findMinDrawingDimension ()
+    //==============================================================================================================
+    //==============================================================================================================
     /**
      * Apply an iteration of the IFS.
      */
     DetIFS.prototype.applyTransform = function () {
-        var transformedImageData = this.getTransformedImageData();
-        this.ctx.putImageData(transformedImageData, 0, 0);
-        this.numIters++;
+        if (this.numIters < this.maxIters) {
+            var transformedImageData = this.getTransformedImageData();
+            this.ctx.putImageData(transformedImageData, 0, 0);
+            this.numIters++;
+        }
     }; // applyTransform ()
     //==============================================================================================================
     //==============================================================================================================
@@ -180,6 +234,9 @@ var DetIFS = /** @class */ (function () {
 //==================================================================================================================
 //======================================================================================================================
 // END TYPES
+//======================================================================================================================
+//======================================================================================================================
+// TEMP FUNCTION
 //======================================================================================================================
 //======================================================================================================================
 // INITIALIZATION

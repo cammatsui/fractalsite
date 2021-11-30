@@ -67,6 +67,9 @@
 
         /* The number of iterations performed on this IFS. */
         numIters: number;
+
+        /* The maximum number of iterations possible. */
+        readonly maxIters: number;
         //==============================================================================================================
 
 
@@ -82,9 +85,11 @@
         constructor(ctx: CanvasRenderingContext2D, w: number, h: number, transformParams: AffineParam[]) {
             this.ctx = ctx;
             this.width = w;
-            this.height = height;
+            this.height = h;
             this.numIters = 0;
             this.affineTransformMatrices = [];
+            this.maxIters = this.findMaxIters(transformParams);
+
             transformParams.forEach(t => {
                 this.affineTransformMatrices.push(
                     DetIFS.invertAffineMatrix(this.createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f))
@@ -101,12 +106,57 @@
 
         //==============================================================================================================
         /**
+         * Calculate the maximum number of iterations for the IFS based on the input image, canvas dimensions,
+         * and minimum scaling factor of the transformations.
+         * 
+         * @param transformParams The transformaton parameters.
+         * @returns The maximum number of iterations.
+         */
+        private findMaxIters(transformParams: AffineParam[]): number {
+            var minDim = this.findMinDrawingDimension();
+            var minScalingFactor = DetIFS.findMinScalingFactor(transformParams);
+            // if square of minDim, how many times can we multiply by minScalingFactor to get to 1?
+            //  i = log_{minScalingFactor}(1/minDim)
+            return Math.floor(Math.log(1/minDim) / Math.log(minScalingFactor))
+        } // findMaxIters ()
+        //==============================================================================================================
+
+
+        //==============================================================================================================
+        /**
+         * Find the minimum on the x or y axis of drawn pixels.
+         */
+        private findMinDrawingDimension(): number {
+            var iD = this.ctx.getImageData(0, 0, this.width, this.height);
+            var minX = this.width;
+            var maxX = 0;
+            var minY = this.height;
+            var maxY = 0;
+            for (var x = 0; x < this.width; x++) {
+                for (var y = 0; y < this.height; y++) {
+                    if (iD.data[(y*iD.width + x)*4 + 3] != 0) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+            return Math.min(maxX-minX, maxY-minY);
+        }// findMinDrawingDimension ()
+        //==============================================================================================================
+
+
+        //==============================================================================================================
+        /**
          * Apply an iteration of the IFS.
          */
         public applyTransform(): void {
-            var transformedImageData = this.getTransformedImageData();
-            this.ctx.putImageData(transformedImageData, 0, 0);
-            this.numIters++;
+            if (this.numIters < this.maxIters) {
+                var transformedImageData = this.getTransformedImageData();
+                this.ctx.putImageData(transformedImageData, 0, 0);
+                this.numIters++;
+            }
         } // applyTransform ()
         //==============================================================================================================
 
@@ -202,6 +252,24 @@
 
         //==============================================================================================================
         /**
+         * Find the minimum scaling factor (r or s) of the given transformation parameters.
+         * 
+         * @param transformParams The transformation parameters of interest.
+         * @returns The minimum scaling factor of transformParams.
+         */
+        static findMinScalingFactor(transformParams: AffineParam[]) {
+            var min: number = Number.MAX_VALUE
+            transformParams.forEach(t => {
+                if (t.r < min) min = t.r;
+                if (t.s < min) min = t.s;
+            })
+            return min;
+        } // findMinScalingFactor ()
+        //==============================================================================================================
+
+
+        //==============================================================================================================
+        /**
          * Get the alpha value of the given PxCoord on the given ImageData.
          * 
          * @param iD The ImageData to look at.
@@ -275,6 +343,12 @@
 
 //======================================================================================================================
 // END TYPES
+//======================================================================================================================
+
+
+//======================================================================================================================
+// TEMP FUNCTION
+
 //======================================================================================================================
 
 
