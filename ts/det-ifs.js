@@ -9,6 +9,9 @@
 var DetIFS = /** @class */ (function () {
     //==============================================================================================================
     //==============================================================================================================
+    // INSTANCE METHODS
+    //==============================================================================================================
+    //==============================================================================================================
     /**
      * Default constructor for the DetIFS.
      *
@@ -24,45 +27,34 @@ var DetIFS = /** @class */ (function () {
         this.height = h;
         this.numIters = 0;
         this.affineTransformMatrices = [];
-        var minDrawingDimension = this.findMinDrawingDimension(ctx.getImageData(0, 0, width, height));
-        var minScalingFactor = DetIFS.findMinScalingFactor(transformParams);
-        this.maxIters = this.findMaxIters(minDrawingDimension, minScalingFactor);
-        console.log(this.maxIters);
+        this.maxIters = this.findMaxIters(transformParams);
         transformParams.forEach(function (t) {
             _this.affineTransformMatrices.push(DetIFS.invertAffineMatrix(_this.createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f)));
         });
     } // constructor ()
     //==============================================================================================================
     //==============================================================================================================
-    // INSTANCE METHODS
-    //==============================================================================================================
-    //==============================================================================================================
-    DetIFS.findMinScalingFactor = function (transformParams) {
-        var min = Number.MAX_VALUE;
-        transformParams.forEach(function (t) {
-            if (t.r < min)
-                min = t.r;
-            if (t.s < min)
-                min = t.s;
-        });
-        return min;
-    }; // findMinScalingFactor ()
-    //==============================================================================================================
-    //==============================================================================================================
-    DetIFS.prototype.findMaxIters = function (minDim, minScalingFactor) {
+    /**
+     * Calculate the maximum number of iterations for the IFS based on the input image, canvas dimensions,
+     * and minimum scaling factor of the transformations.
+     *
+     * @param transformParams The transformaton parameters.
+     * @returns The maximum number of iterations.
+     */
+    DetIFS.prototype.findMaxIters = function (transformParams) {
+        var minDim = this.findMinDrawingDimension();
+        var minScalingFactor = DetIFS.findMinScalingFactor(transformParams);
         // if square of minDim, how many times can we multiply by minScalingFactor to get to 1?
         //  i = log_{minScalingFactor}(1/minDim)
-        var pctIDFill = minDim / Math.min(this.width, this.height);
-        return Math.ceil(Math.log(1 / minDim) / Math.log(minScalingFactor));
+        return Math.floor(Math.log(1 / minDim) / Math.log(minScalingFactor));
     }; // findMaxIters ()
     //==============================================================================================================
     //==============================================================================================================
     /**
-     * Find the minimum
-     *
-     * @param ctx
+     * Find the minimum on the x or y axis of drawn pixels.
      */
-    DetIFS.prototype.findMinDrawingDimension = function (iD) {
+    DetIFS.prototype.findMinDrawingDimension = function () {
+        var iD = this.ctx.getImageData(0, 0, this.width, this.height);
         var minX = this.width;
         var maxX = 0;
         var minY = this.height;
@@ -176,6 +168,24 @@ var DetIFS = /** @class */ (function () {
     //==============================================================================================================
     //==============================================================================================================
     /**
+     * Find the minimum scaling factor (r or s) of the given transformation parameters.
+     *
+     * @param transformParams The transformation parameters of interest.
+     * @returns The minimum scaling factor of transformParams.
+     */
+    DetIFS.findMinScalingFactor = function (transformParams) {
+        var min = Number.MAX_VALUE;
+        transformParams.forEach(function (t) {
+            if (t.r < min)
+                min = t.r;
+            if (t.s < min)
+                min = t.s;
+        });
+        return min;
+    }; // findMinScalingFactor ()
+    //==============================================================================================================
+    //==============================================================================================================
+    /**
      * Get the alpha value of the given PxCoord on the given ImageData.
      *
      * @param iD The ImageData to look at.
@@ -240,17 +250,25 @@ var DetIFS = /** @class */ (function () {
 //======================================================================================================================
 //======================================================================================================================
 // INITIALIZATION
-var canvas = document.getElementById('canvas');
+var canvas = document.getElementById('fractal-canvas');
 var ctx = canvas.getContext('2d');
-var maxDimension = Math.floor(Math.min(window.innerHeight * .7, window.innerHeight * .9));
+var maxDimension = Math.floor(Math.min(window.innerWidth * .5, window.innerHeight * .9));
 var height = maxDimension;
 var width = maxDimension;
 canvas.height = height;
 canvas.width = width;
-ctx.fillStyle = "blue";
-ctx.rect(0, 0, width, height);
-ctx.fill();
+reDraw();
 var detIFS = createIFSFromTable();
+//======================================================================================================================
+//======================================================================================================================
+// TEMP FUNCTIONS
+function reDraw() {
+    ctx.fillStyle = "blue";
+    ctx.putImageData(ctx.createImageData(width, height), 0, 0);
+    //ctx.rect(0, 0, width, height);
+    ctx.rect(width / 4, height / 4, width / 2, height / 2);
+    ctx.fill();
+} // reDraw ()
 //======================================================================================================================
 //======================================================================================================================
 // BUTTON FUNCTIONS 
@@ -291,15 +309,17 @@ function createIFSFromTable() {
     return detIFS;
 } // createIFSFromTable ()
 function resetIFS() {
-    ctx.fillStyle = "blue";
-    ctx.putImageData(ctx.createImageData(width, height), 0, 0);
-    ctx.rect(0, 0, width, height);
-    ctx.fill();
+    moveDrawing();
     detIFS = createIFSFromTable();
 } // resetIFS ()
 function runIteration() {
     detIFS.applyTransform();
 } // runIteration ()
+function moveDrawing() {
+    var otherCanvas = document.getElementById('drawing-canvas');
+    var otherCtx = otherCanvas.getContext('2d');
+    ctx.putImageData(otherCtx.getImageData(0, 0, width, height), 0, 0);
+} // moveDrawing ()
 //======================================================================================================================
 //======================================================================================================================
 // BUTTON SETUP
@@ -311,4 +331,6 @@ var delRowButton = document.getElementById("delRow");
 delRowButton.onclick = deleteLastRow;
 var resetIFSButton = document.getElementById("resIFS");
 resetIFSButton.onclick = resetIFS;
+var moveDrawingButton = document.getElementById("moveDr");
+moveDrawingButton.onclick = moveDrawing;
 //======================================================================================================================

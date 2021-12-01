@@ -74,6 +74,11 @@
 
 
         //==============================================================================================================
+        // INSTANCE METHODS
+        //==============================================================================================================
+
+
+        //==============================================================================================================
         /**
          * Default constructor for the DetIFS.
          * 
@@ -96,11 +101,6 @@
                 );
             })
         } // constructor ()
-        //==============================================================================================================
-
-
-        //==============================================================================================================
-        // INSTANCE METHODS
         //==============================================================================================================
 
 
@@ -354,9 +354,9 @@
 
 //======================================================================================================================
 // INITIALIZATION
-const canvas = <HTMLCanvasElement>document.getElementById('canvas');
+const canvas = <HTMLCanvasElement>document.getElementById('fractal-canvas');
 const ctx = canvas.getContext('2d')!;
-const maxDimension = Math.floor(Math.min(window.innerHeight*.7, window.innerHeight*.9));
+const maxDimension = Math.floor(Math.min(window.innerWidth*.5, window.innerHeight*.9));
 
 const height = maxDimension;
 const width = maxDimension;
@@ -364,12 +364,23 @@ const width = maxDimension;
 canvas.height = height;
 canvas.width = width;
 
-ctx.fillStyle = "blue";
-ctx.rect(0, 0, width, height);
-ctx.fill();
+reDraw();
 
 var detIFS = createIFSFromTable();
 //======================================================================================================================
+
+
+//======================================================================================================================
+// TEMP FUNCTIONS
+function reDraw() {
+    ctx.fillStyle = "blue";
+    ctx.putImageData(ctx.createImageData(width, height), 0, 0);
+    //ctx.rect(0, 0, width, height);
+    ctx.rect(width / 4, height / 4, width / 2, height / 2);
+    ctx.fill();
+} // reDraw ()
+//======================================================================================================================
+
 
 
 //======================================================================================================================
@@ -414,16 +425,19 @@ function createIFSFromTable(): DetIFS {
 } // createIFSFromTable ()
 
 function resetIFS() {
-    ctx.fillStyle = "blue";
-    ctx.putImageData(ctx.createImageData(width, height), 0, 0);
-    ctx.rect(0, 0, width, height);
-    ctx.fill();
+    moveDrawing();
     detIFS = createIFSFromTable();
 } // resetIFS ()
 
 function runIteration() {
     detIFS.applyTransform(); 
 } // runIteration ()
+
+function moveDrawing() {
+    var otherCanvas = <HTMLCanvasElement>document.getElementById('drawing-canvas');
+    var otherCtx = otherCanvas.getContext('2d')!;
+    ctx.putImageData(otherCtx.getImageData(0, 0, width, height), 0, 0);
+} // moveDrawing ()
 //======================================================================================================================
 
 
@@ -440,4 +454,7 @@ delRowButton.onclick = deleteLastRow;
 
 var resetIFSButton = document.getElementById("resIFS")!;
 resetIFSButton.onclick = resetIFS;
+
+var moveDrawingButton = document.getElementById("moveDr")!;
+moveDrawingButton.onclick = moveDrawing;
 //======================================================================================================================
