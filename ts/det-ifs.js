@@ -28,6 +28,7 @@ var DetIFS = /** @class */ (function () {
         this.numIters = 0;
         this.affineTransformMatrices = [];
         this.maxIters = this.findMaxIters(transformParams);
+        console.log(this.maxIters);
         transformParams.forEach(function (t) {
             _this.affineTransformMatrices.push(DetIFS.invertAffineMatrix(_this.createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f)));
         });
@@ -265,8 +266,8 @@ var detIFS = createIFSFromTable();
 function reDraw() {
     ctx.fillStyle = "blue";
     ctx.putImageData(ctx.createImageData(width, height), 0, 0);
-    //ctx.rect(0, 0, width, height);
-    ctx.rect(width / 4, height / 4, width / 2, height / 2);
+    ctx.rect(-100, -100, width + 100, height + 100);
+    //ctx.rect(width / 4, height / 4, width / 2, height / 2);
     ctx.fill();
 } // reDraw ()
 //======================================================================================================================
@@ -309,16 +310,18 @@ function createIFSFromTable() {
     return detIFS;
 } // createIFSFromTable ()
 function resetIFS() {
-    moveDrawing();
+    reDraw();
+    //moveDrawing();
     detIFS = createIFSFromTable();
 } // resetIFS ()
 function runIteration() {
     detIFS.applyTransform();
 } // runIteration ()
 function moveDrawing() {
-    var otherCanvas = document.getElementById('drawing-canvas');
-    var otherCtx = otherCanvas.getContext('2d');
-    ctx.putImageData(otherCtx.getImageData(0, 0, width, height), 0, 0);
+    reDraw();
+    //var otherCanvas = <HTMLCanvasElement>document.getElementById('drawing-canvas');
+    //var otherCtx = otherCanvas.getContext('2d')!;
+    //ctx.putImageData(otherCtx.getImageData(0, 0, width, height), 0, 0);
 } // moveDrawing ()
 //======================================================================================================================
 //======================================================================================================================

@@ -94,6 +94,7 @@
             this.numIters = 0;
             this.affineTransformMatrices = [];
             this.maxIters = this.findMaxIters(transformParams);
+            console.log(this.maxIters);
 
             transformParams.forEach(t => {
                 this.affineTransformMatrices.push(
@@ -375,8 +376,8 @@ var detIFS = createIFSFromTable();
 function reDraw() {
     ctx.fillStyle = "blue";
     ctx.putImageData(ctx.createImageData(width, height), 0, 0);
-    //ctx.rect(0, 0, width, height);
-    ctx.rect(width / 4, height / 4, width / 2, height / 2);
+    ctx.rect(-100, -100, width+100, height+100);
+    //ctx.rect(width / 4, height / 4, width / 2, height / 2);
     ctx.fill();
 } // reDraw ()
 //======================================================================================================================
@@ -385,6 +386,8 @@ function reDraw() {
 
 //======================================================================================================================
 // BUTTON FUNCTIONS 
+
+// Add a new row to the bottom of the IFS table.
 function addRow() {
     var affineTable = <HTMLTableElement>document.getElementById("affineTable");
     var nRows: number = affineTable.rows.length;
@@ -396,6 +399,7 @@ function addRow() {
     }
 } // addRow ()
 
+// Delete the last row of the IFS table.
 function deleteLastRow() {
     var affineTable: HTMLTableElement = <HTMLTableElement>document.getElementById("affineTable");
     var nRows: number = affineTable.rows.length;
@@ -404,6 +408,7 @@ function deleteLastRow() {
     }
 } // deleteLastRow ()
 
+// Create an IFS object from the table to be applied to the canvas.
 function createIFSFromTable(): DetIFS {
     var affineTable: HTMLTableElement = <HTMLTableElement>document.getElementById("affineTable");
     var affineParams: AffineParam[] = [];
@@ -424,8 +429,10 @@ function createIFSFromTable(): DetIFS {
     return detIFS;
 } // createIFSFromTable ()
 
+// Reset the iterated function system.
 function resetIFS() {
-    moveDrawing();
+    reDraw();
+    //moveDrawing();
     detIFS = createIFSFromTable();
 } // resetIFS ()
 
@@ -434,9 +441,10 @@ function runIteration() {
 } // runIteration ()
 
 function moveDrawing() {
-    var otherCanvas = <HTMLCanvasElement>document.getElementById('drawing-canvas');
-    var otherCtx = otherCanvas.getContext('2d')!;
-    ctx.putImageData(otherCtx.getImageData(0, 0, width, height), 0, 0);
+    reDraw();
+    //var otherCanvas = <HTMLCanvasElement>document.getElementById('drawing-canvas');
+    //var otherCtx = otherCanvas.getContext('2d')!;
+    //ctx.putImageData(otherCtx.getImageData(0, 0, width, height), 0, 0);
 } // moveDrawing ()
 //======================================================================================================================
 
