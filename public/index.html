@@ -21,21 +21,52 @@
 
         <!-- Fractal Canvas -->
         <div id="canvas-container" class="container d-flex justify-content-center py-3">
-            <canvas id="drawing-canvas" style="border:3px solid #000000;"></canvas>
             <canvas id="fractal-canvas" style="border:3px solid #000000;"></canvas>
             <script type="module" src = "js/fractalApps/det-ifs-app.js"></script>
         </div>
 
         <!-- Control Panel -->
-        <div class="container text-center mx-auto" style="width:70%">
+        <div class="container-sm text-center mx-auto">
 
             <!-- Button Panel -->
-            <div id="button-container" class="card">
-                <div class="card-body d-flex justify-content-center">
-                    <div class="card-body">
-                        <a class="btn btn-secondary mx-3" id="clear-drawing-btn">Clear Drawing</a>
+            <div class = "card">
+                <div class="container-fluid m-3">
 
-                        <div class="btn-group" role="group" aria-label="Color Picker">
+                    <a class="btn btn-primary m-2" id="runIter">Run Iteration</a>
+                    <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#ifsModal">
+                        Change IFS
+                    </button>
+                    <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#drawingModal">
+                        Drawing Tools
+                    </button>
+                    <a class="btn btn-primary m-2" id="resetDr">Reset</a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Drawing Modal -->
+        <div class="modal fade" id="drawingModal" tabindex="-1" aria-labelledby="drawingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Drawing Tools</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="card-body">
+                            <div class= "container d-flex justify-content-center">
+                            <canvas id="drawing-canvas" style="border:3px solid #000000;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer d-flex justify-content-center">
+
+                        <a class="btn btn-secondary m-3" id="clear-drawing-btn">Clear Drawing</a>
+
+                        <div class="btn-group m-3" role="group" aria-label="Color Picker">
                             <button type="button" id="color-btn-black" class="btn btn-secondary border-0 color-button" style="background: black;"></button>
                             <button type="button" id="color-btn-red" class="btn btn-secondary border-0 color-button" style="background: red;"></button>
                             <button type="button" id="color-btn-yellow" class="btn btn-secondary border-0 color-button" style="background: yellow;"></button>
@@ -43,21 +74,14 @@
                             <button type="button" id="color-btn-blue" class="btn btn-secondary border-0 color-button" style="background: blue;"></button>
                         </div>
 
-                    </div>
-                    <div class="card-body">
-                        <a class="btn btn-primary mx-2" id="runIter">Run Iteration</a>
-                        <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#ifsModal">
-                            Change IFS
-                        </button>
-                        <a class="btn btn-primary mx-2" id="resetDr">Reset</a>
-                        <a class="btn btn-primary mx-2" id="moveDr">Move Drawing</a>
+                        <a class="btn btn-secondary m-3" id="moveDr">Move Drawing</a>
+
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- Modal -->
+        <!-- IFS Modal -->
         <div class="modal fade" id="ifsModal" tabindex="-1" aria-labelledby="ifsModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -68,6 +92,18 @@
 
                 <div class="modal-body">
                 <div class="card-body">
+
+                    <div class="dropdown mb-3">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="ifsDropDownButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            Choose Preset...
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </div>
+
                     <div id="table" class="table-editable" style="table-layout: fixed;">
                     <table id="affineTable" class="table table-bordered table-md table-striped text-center">
                         <thead>

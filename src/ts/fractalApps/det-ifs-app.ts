@@ -97,12 +97,13 @@ function runIteration() {
 // INITIALIZATION
 //========================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 
-const maxDimension = Math.floor(Math.min(window.innerWidth*.5, window.innerHeight*.83));
+const maxDimension = Math.floor(Math.min(window.innerWidth*.85, window.innerHeight*.85));
+const drawingCanvasMaxDimension = maxDimension * .8;
 
 // Drawing Canvas
 const drawingCanvas = <HTMLCanvasElement>document.getElementById('drawing-canvas');
-drawingCanvas.width = maxDimension;
-drawingCanvas.height = maxDimension;
+drawingCanvas.width = drawingCanvasMaxDimension;
+drawingCanvas.height = drawingCanvasMaxDimension;
 
 var drawing = new DrawingCanvas(drawingCanvas);
 

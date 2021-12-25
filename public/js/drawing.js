@@ -93,13 +93,15 @@ export class DrawingCanvas {
      *
      * @param action: The type of event to parse.
      * @param event: The event to parse.
+     *
      */
     parseAction(action, event) {
         if (action == 'down' || (action == 'move' && this.drawing)) {
+            var rect = this.canvas.getBoundingClientRect();
             this.prevCoordinate = this.currCoordinate;
             this.currCoordinate = {
-                x: event.clientX - this.canvas.offsetLeft,
-                y: event.clientY - this.canvas.offsetTop
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
             };
         }
         if (action == 'down') {
