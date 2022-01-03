@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MemIFS Fractal Generator</title>
+        <meta name="description" content="description">
+        <meta charset="utf-8">
+        <meta name="robots" content="index,follow">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap 5.1.3. CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <link rel="stylesheet"href="css/style.css">
+
+    </head>
+
+    <body class="bg-light">
+        <!-- Title -->
+        <div class="d-flex justify-content-center pt-3">
+            <h4>Iterated Function System With Memory (MemIFS)</h4>
+        </div>
+
+        <!-- Fractal Canvas -->
+        <div id="canvas-container" class="container d-flex justify-content-center py-3">
+            <canvas id="fractal-canvas" style="border:3px solid #000000;"></canvas>
+            <script type="module" src = "../js/fractalApps/mem-ifs-app.js"></script>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="container-sm text-center mx-auto">
+
+            <!-- Button Panel -->
+            <div class = "card">
+                <div class="container-fluid justify-content-center m-3">
+
+                    <a class="btn btn-primary m-2" id="runIter">Run Iteration</a>
+                    <button type="button" id="ifsModalOpen" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#ifsModal">
+                        Change IFS
+                    </button>
+                    <a class="btn btn-primary m-2" id="resetDr">Reset</a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- IFS Modal -->
+        <div class="modal fade" id="ifsModal" tabindex="-1" aria-labelledby="ifsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">IFS With Memory Parameters</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div id="ifsModalBody" class="modal-body d-flex justify-content-center">
+                    <div id="2dButtonPanel" class="card-body d-flex justify-content-center">
+                        <canvas id="parameter-canvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-center">
+                    <a class="btn btn-primary mx-3" id="resIFS">Save and Reset</a>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap etc. -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+    </body>
+</html

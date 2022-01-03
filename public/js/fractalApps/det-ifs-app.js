@@ -5,10 +5,9 @@
  * @date December 2021.
  */
 // IMPORTS
-import { DrawingCanvas } from '../drawing.js';
+import { DrawingCanvas } from '../etc/drawing.js';
 import { DeterministicIFS } from '../fractals/det-ifs.js';
 import { presetIfs } from '../etc/presetIfs.js';
-;
 //======================================================================================================================
 //======================================================================================================================
 // FUNCTIONS

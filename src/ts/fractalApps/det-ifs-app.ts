@@ -6,11 +6,10 @@
  */
 
 // IMPORTS
-import { DrawingCanvas } from '../drawing.js';
+import { DrawingCanvas } from '../etc/drawing.js';
 import { DeterministicIFS } from '../fractals/det-ifs.js';
 import { ParameterizedAffineTransform } from '../types.js';
-import { presetIfs } from '../etc/presetIfs.js';import { forEachChild } from 'typescript';
-;
+import { presetIfs } from '../etc/presetIfs.js';
 //======================================================================================================================
 
 
