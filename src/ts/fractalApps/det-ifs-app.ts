@@ -17,7 +17,6 @@ import { presetIfs } from '../etc/presetIfs.js';
 // FUNCTIONS
 //======================================================================================================================
 
-
 // Drawing Functions
 function setColor(color: string) {
     drawing.updateColor(color);
@@ -35,6 +34,7 @@ function moveDrawing() {
 } // moveDrawing ()
 
 
+// Get a preset IFS.
 function getPresetIfs(fractalName: string) {
     var ifs = presetIfs[0].ifs;
     presetIfs.every(preset => {
@@ -49,6 +49,7 @@ function getPresetIfs(fractalName: string) {
 } // getPresetIfs ()
 
 
+// Apply a preset deterministic ifs.
 function applyPresetIfs(fractalName: string) {
     var ifs = getPresetIfs(fractalName);
     var affineTable = <HTMLTableElement>document.getElementById("affineTable");
@@ -76,6 +77,7 @@ function applyPresetIfs(fractalName: string) {
 } // applyPresetIfs ()
 
 
+// Redraw the fractl canvas.
 function reDraw() {
     ctx.fillStyle = "blue"
     ctx.putImageData(ctx.createImageData(fractalCanvas.width, fractalCanvas.height), 0, 0);
@@ -135,11 +137,13 @@ function resetIFS() {
 } // resetIFS ()
 
 
+// Run an iteration of the ifs.
 function runIteration() {
     detIFS.applyTransform(); 
 } // runIteration ()
 
 
+// Reset the size of the drawing canvas when the modal is opened.
 function resizeDrawingCanvas() {
     const drawingModal = <HTMLDivElement>document.getElementById("drawingModalBody");
     var drawingCanvasMaxDimension = Math.min(maxDimension *.8, drawingModal.offsetWidth);
@@ -148,11 +152,13 @@ function resizeDrawingCanvas() {
 } // resizeDrawingCanvas ()
 
 
+// Reset the drawing tools.
 function resetDrawingTools() {
     drawing.resetDrawingTools();
 } // resetDrawingTools ()
 
 
+// Setup the drawing canvas when the modal is opened.
 function activateDrawingCanvas() {
     setTimeout(resizeDrawingCanvas, 250);
     setTimeout(resetDrawingTools, 250);

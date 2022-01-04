@@ -179,6 +179,6 @@ export function composeAffineTransforms(transforms: number[][]): number[] {
     ];
     if (transforms.length == 2) return result;
     var temp = [result]
-    return composeAffineTransforms(temp.concat(transforms.slice(1, transforms.length)));
+    return composeAffineTransforms(temp.concat(transforms.slice(2, transforms.length)));
 } // composeAffineTransforms ()
 //======================================================================================================================
