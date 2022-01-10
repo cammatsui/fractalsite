@@ -27,8 +27,6 @@ export class DrawingCanvas {
         this.defaultWidth = 6;
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
-        this.width = this.canvas.width;
-        this.height = this.canvas.height;
         this.drawing = false;
         this.prevCoordinate = { x: 0, y: 0 };
         this.currCoordinate = { x: 0, y: 0 };

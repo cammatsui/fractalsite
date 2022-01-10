@@ -27,12 +27,6 @@ export class DrawingCanvas {
     /* The context to draw with. */
     readonly ctx: CanvasRenderingContext2D;
 
-    /* The width of the canvas in pixels. */
-    readonly width: number;
-
-    /* The height of the canvas in pixels. */
-    readonly height: number;
-
     /* Whether we are currently drawing. */ 
     drawing: boolean;
 
@@ -65,8 +59,6 @@ export class DrawingCanvas {
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
-        this.width = this.canvas.width;
-        this.height = this.canvas.height;
         this.drawing = false;
         this.prevCoordinate = {x: 0, y: 0};
         this.currCoordinate = {x: 0, y: 0};

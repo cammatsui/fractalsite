@@ -58,13 +58,6 @@ export class MemIFSParamCanvas {
     private incY;
 
     /* Mapping from cell to matrix entry for 2D. */
-    private readonly cellMapping2D = [[[3,3], [3,4], [4,3], [4,4]],
-                                      [[3,1], [3,2], [4,1], [4,2]],
-                                      [[1,3], [1,4], [2,3], [2,4]],
-                                      [[1,1], [1,2], [2,1], [2,2]]];
-   
-
-    /* Mapping from cell to matrix entry for 2D. */
     private readonly cellMapping3D = [[[3,3,3], [3,3,4], [3,4,3], [3,4,4], [4,3,3], [4,3,4], [4,4,3], [4,4,4]],
                                       [[3,3,1], [3,3,2], [3,4,1], [3,4,2], [4,3,1], [4,3,2], [4,4,1], [4,4,2]],
                                       [[3,1,3], [3,1,4], [3,2,3], [3,2,4], [4,1,3], [4,1,4], [4,2,3], [4,2,4]],
@@ -111,21 +104,68 @@ export class MemIFSParamCanvas {
 
     //==================================================================================================================
     /**
+     * Set all of the cells to true.
+     */
+    public clearCells() {
+        this.setCells(true);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawGrid();
+    } // clearCells ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Set all of the cells to false.
+     */
+    public fillCells() {
+        this.setCells(false);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawGrid();
+    } // fillCells ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Set all the cells to the given value.
+     * 
+     * @param value The value to set all of the cells to.
+     */
+    private setCells(value: boolean) {
+        if (this.is2D) {
+            for (var i = 0; i < this.matrix2D.length; i++) {
+                for (var j = 0; j < this.matrix2D[0].length; j++) {
+                    this.matrix2D[i][j] = value;
+                }
+            }
+        } else {
+            for (var i = 0; i < this.matrix3D.length; i++) {
+                for (var j = 0; j < this.matrix3D[0].length; j++) {
+                    for (var k = 0; k < this.matrix3D[0][0].length; k++) {
+                        this.matrix3D[i][j][k] = value;
+                    }
+                }
+            }
+        }
+    } // setCells ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
      * Draw the grid onto the canvas for the MemIFS.
      */
     public drawGrid() {
-        console.log(this.canvas.width);
-        console.log(this.canvas.height);
-        this.incX = this.is2D ? this.canvas.width / 4 : this.canvas.width / 8;
-        this.incY = this.is2D ? this.canvas.width / 4 : this.canvas.height / 8;
+        this.incX = this.canvas.width / 4;
+        this.incY = this.canvas.width / 4;
         var c;
         var drawEmpty = true;
         var numCellsSide = this.is2D ? 3 : 7;
         for (var row = 0; row <= numCellsSide; row++) {
             for (var col = 0; col <= numCellsSide; col ++) {
                 if (this.is2D) {
-                    c = this.cellMapping2D[col][row];
-                    drawEmpty = this.matrix2D[c[0]-1][c[1]-1];
+                    drawEmpty = this.matrix2D[row][col];
                 }
                 else {
                     c = this.cellMapping3D[col][row];
@@ -162,11 +202,25 @@ export class MemIFSParamCanvas {
      * @param col The column of the cell.
      */
     private drawFullCell(row: number, col: number) {
-        this.ctx.beginPath();
-        this.ctx.rect(row*this.incX, col*this.incY, this.incX, this.incY);
-        this.ctx.fillStyle="blue";
-        this.ctx.fill();
-        this.ctx.stroke();
+        if (this.is2D) {
+            this.ctx.beginPath();
+            this.ctx.rect(row*this.incX, col*this.incY, this.incX, this.incY);
+            this.ctx.fillStyle="blue";
+            this.ctx.fill();
+            this.ctx.stroke();
+        } else {
+            var incX3D = this.incX * (2/5);
+            var incY3D = this.incY * (2/5);
+            var gapX3D = this.incX * (1/5);
+            var gapY3D = this.incY * (1/5);
+            for (var i = 0; i < 4; i++) {
+                this.ctx.beginPath();
+                this.ctx.rect(row*this.incX + (i*gapX3D), col*this.incY + (i*gapY3D), incX3D, incY3D);
+                this.ctx.fillStyle="blue";
+                this.ctx.fill();
+                this.ctx.stroke();
+            }
+        }
     } // drawFullRect ()
     //==================================================================================================================
 
@@ -228,10 +282,9 @@ export class MemIFSParamCanvas {
         this.clearCell(row, col);
         var c; // coordinate.
         if (this.is2D) {
-            c = this.cellMapping2D[col][row];
-            if (this.matrix2D[c[0]-1][c[1]-1]) this.drawFullCell(row, col);
+            if (this.matrix2D[row][col]) this.drawFullCell(row, col);
             else this.drawEmptyCell(row, col);
-            this.matrix2D[c[0]-1][c[1]-1] = !this.matrix2D[c[0]-1][c[1]-1];
+            this.matrix2D[row][col] = !this.matrix2D[row][col];
         } else {
             c = this.cellMapping3D[col][row];
             if (this.matrix3D[c[0]-1][c[1]-1][c[2]-1]) this.drawFullCell(row, col);

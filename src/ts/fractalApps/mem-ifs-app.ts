@@ -48,9 +48,9 @@ function drawGrid() {
 
 // Reset the MemIFS.
 function resetIFS() {
-    reDraw();
     if (ifsParamSelector.is2D) ifs = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
     else ifs = new IFSWithMemory3D(fractalCanvas, ifsParamSelector.matrix3D);
+    reDraw();
 } // resetIFS ()
 
 
@@ -70,6 +70,18 @@ function changeDimension() {
 function runIteration() {
     ifs.applyTransform();
 } // runIteration ()
+
+
+// Clear all cells in the parameter selector.
+function clearCells() {
+    ifsParamSelector.clearCells();
+} // clearCells ()
+
+
+// Fill all cells in the parameter selector.
+function fillCells() {
+    ifsParamSelector.fillCells();
+}
 
 //======================================================================================================================
 // INITIALIZATION
@@ -102,8 +114,17 @@ runIterButton.onclick = runIteration;
 var resetIFSButton = document.getElementById("resIFS")!;
 resetIFSButton.onclick = resetIFS;
 
+var resetIFSModalButton = document.getElementById("resIFSModal")!;
+resetIFSModalButton.onclick = resetIFS;
+
 var ifsModalOpenButton = document.getElementById("ifsModalOpen")!;
 ifsModalOpenButton.onclick = activateParamCanvas;
 
 var changeDimensionButton = document.getElementById("changeDim")!;
 changeDimensionButton.onclick = changeDimension;
+
+var clearCellsButton = document.getElementById("clearCells")!;
+clearCellsButton.onclick = clearCells;
+
+var fillCellsButton = document.getElementById("fillCells")!;
+fillCellsButton.onclick = fillCells;

@@ -25,12 +25,12 @@ function setColor(color: string) {
 
 // Fractal Functions
 function moveDrawing() {
+    ctx.scale(1, 1);
     ctx.clearRect(0, 0, fractalCanvas.width, fractalCanvas.height);
-    var drawingCtx = drawing.ctx;
-    ctx.putImageData(drawingCtx.getImageData(0, 0, drawingCanvas.width, drawingCanvas.height), 0, 0);
     var scalingFactor = fractalCanvas.width / drawingCanvas.width;
     ctx.scale(scalingFactor, scalingFactor);
-    ctx.drawImage(fractalCanvas, 0, 0);
+    ctx.drawImage(drawingCanvas, 0, 0);
+    ctx.scale(1/scalingFactor, 1/scalingFactor);
 } // moveDrawing ()
 
 
@@ -160,6 +160,7 @@ function resetDrawingTools() {
 
 // Setup the drawing canvas when the modal is opened.
 function activateDrawingCanvas() {
+    drawing = new DrawingCanvas(drawingCanvas);
     setTimeout(resizeDrawingCanvas, 250);
     setTimeout(resetDrawingTools, 250);
 } // activateDrawingCanvas ()
