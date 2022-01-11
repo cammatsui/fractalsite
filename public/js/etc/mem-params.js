@@ -42,21 +42,12 @@ export class MemIFSParamCanvas {
                 [true, true, true, true],
                 [true, true, true, true],
                 [true, true, true, true]]];
-        /* Mapping from cell to matrix entry for 2D. */
-        this.cellMapping3D = [[[3, 3, 3], [3, 3, 4], [3, 4, 3], [3, 4, 4], [4, 3, 3], [4, 3, 4], [4, 4, 3], [4, 4, 4]],
-            [[3, 3, 1], [3, 3, 2], [3, 4, 1], [3, 4, 2], [4, 3, 1], [4, 3, 2], [4, 4, 1], [4, 4, 2]],
-            [[3, 1, 3], [3, 1, 4], [3, 2, 3], [3, 2, 4], [4, 1, 3], [4, 1, 4], [4, 2, 3], [4, 2, 4]],
-            [[3, 1, 1], [3, 1, 2], [3, 2, 1], [3, 2, 2], [4, 1, 1], [4, 1, 2], [4, 2, 1], [4, 2, 2]],
-            [[1, 3, 3], [1, 3, 4], [1, 4, 3], [1, 4, 4], [2, 3, 3], [2, 3, 4], [2, 4, 3], [2, 4, 4]],
-            [[1, 3, 1], [1, 3, 2], [1, 4, 1], [1, 4, 2], [2, 3, 1], [2, 3, 2], [2, 4, 1], [2, 4, 2]],
-            [[1, 1, 3], [1, 1, 4], [1, 2, 3], [1, 2, 4], [2, 1, 3], [2, 1, 4], [2, 2, 3], [2, 2, 4]],
-            [[1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 2, 2], [2, 1, 1], [2, 1, 2], [2, 2, 1], [2, 2, 2]]];
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.ctx.fillStyle = "blue";
         this.is2D = true;
-        this.incX = 0;
-        this.incY = 0;
+        this.inc = 0;
+        this.inc = 0;
         this.initializeCanvas();
     } // constructor ()
     //==================================================================================================================
@@ -120,24 +111,17 @@ export class MemIFSParamCanvas {
      * Draw the grid onto the canvas for the MemIFS.
      */
     drawGrid() {
-        this.incX = this.canvas.width / 4;
-        this.incY = this.canvas.width / 4;
+        this.inc = this.canvas.width / 4;
+        this.inc = this.canvas.width / 4;
         var c;
         var drawEmpty = true;
-        var numCellsSide = this.is2D ? 3 : 7;
+        var numCellsSide = 3;
         for (var row = 0; row <= numCellsSide; row++) {
             for (var col = 0; col <= numCellsSide; col++) {
-                if (this.is2D) {
-                    drawEmpty = this.matrix2D[row][col];
-                }
-                else {
-                    c = this.cellMapping3D[col][row];
-                    drawEmpty = this.matrix3D[c[0] - 1][c[1] - 1][c[2] - 1];
-                }
-                if (drawEmpty)
-                    this.drawEmptyCell(row, col);
+                if (this.is2D)
+                    this.draw2DCell(row, col);
                 else
-                    this.drawFullCell(row, col);
+                    this.draw3DCells(row, col);
             }
         }
     } // draw2DGrid ()
@@ -151,39 +135,49 @@ export class MemIFSParamCanvas {
      */
     drawEmptyCell(row, col) {
         this.ctx.beginPath();
-        this.ctx.rect(row * this.incX, col * this.incY, this.incX, this.incY);
+        this.ctx.rect(row * this.inc, col * this.inc, this.inc, this.inc);
         this.ctx.stroke();
     } // drawClearRect ()
     //==================================================================================================================
     //==================================================================================================================
     /**
-     * Draw a full (disallowed) cell at the given row/column position.
+     * Draw the 2D cell based on the state of matrix2D at the given row and column.
      *
-     * @param row The row of the cell.
-     * @param col The column of the cell.
+     * @param row The row to draw the correct cell at.
+     * @param col The column to draw the correct cell at.
      */
-    drawFullCell(row, col) {
-        if (this.is2D) {
-            this.ctx.beginPath();
-            this.ctx.rect(row * this.incX, col * this.incY, this.incX, this.incY);
+    draw2DCell(row, col) {
+        this.clearCell(row, col);
+        this.ctx.beginPath();
+        this.ctx.rect(row * this.inc, col * this.inc, this.inc, this.inc);
+        if (!this.matrix2D[row][col]) {
             this.ctx.fillStyle = "blue";
+            this.ctx.fill();
+        }
+        this.ctx.stroke();
+    } // draw2DCell ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Draw the 3d cells corresponding to the state of matrix3D at the given row/column.
+     *
+     * @param row The row of the 3d cells.
+     * @param col The column of the 3d cells.
+     */
+    draw3DCells(row, col) {
+        this.clearCell(row, col);
+        var inc3D = this.inc * (1 / 6);
+        this.ctx.beginPath();
+        this.ctx.rect(row * this.inc, col * this.inc, this.inc, this.inc);
+        this.ctx.stroke();
+        for (var i = 3; i >= 0; i--) {
+            this.ctx.beginPath();
+            this.ctx.rect(row * this.inc + (i + 0.5) * inc3D, col * this.inc + (i + 0.5) * inc3D, 2 * inc3D, 2 * inc3D);
+            this.ctx.fillStyle = this.matrix3D[row][col][i] ? "white" : "blue";
             this.ctx.fill();
             this.ctx.stroke();
         }
-        else {
-            var incX3D = this.incX * (2 / 5);
-            var incY3D = this.incY * (2 / 5);
-            var gapX3D = this.incX * (1 / 5);
-            var gapY3D = this.incY * (1 / 5);
-            for (var i = 0; i < 4; i++) {
-                this.ctx.beginPath();
-                this.ctx.rect(row * this.incX + (i * gapX3D), col * this.incY + (i * gapY3D), incX3D, incY3D);
-                this.ctx.fillStyle = "blue";
-                this.ctx.fill();
-                this.ctx.stroke();
-            }
-        }
-    } // drawFullRect ()
+    } // draw3DCells()
     //==================================================================================================================
     //==================================================================================================================
     /**
@@ -193,7 +187,7 @@ export class MemIFSParamCanvas {
      * @param col The column of the cell to clear.
      */
     clearCell(row, col) {
-        this.ctx.clearRect(row * this.incX, col * this.incY, this.incX, this.incY);
+        this.ctx.clearRect(row * this.inc, col * this.inc, this.inc, this.inc);
     } // clearRect ()
     //==================================================================================================================
     //==================================================================================================================
@@ -218,39 +212,77 @@ export class MemIFSParamCanvas {
      */
     parseClick(event) {
         var rect = this.canvas.getBoundingClientRect();
-        var row = Math.floor((event.clientX - rect.left) / this.incX);
-        var col = Math.floor((event.clientY - rect.top) / this.incY);
-        this.toggleCell(row, col);
+        var clickX = event.clientX - rect.left;
+        var clickY = event.clientY - rect.top;
+        var row = Math.floor(clickX / this.inc);
+        var col = Math.floor(clickY / this.inc);
+        if (this.is2D) {
+            this.toggle2DCell(col, row);
+        }
+        else {
+            var cellX = clickX % this.inc - (1 / 12) * this.inc;
+            var cellY = clickY % this.inc - (1 / 12) * this.inc;
+            if (cellX > (10 / 12) * this.inc || cellY > (10 / 12) * this.inc || cellX < 0 || cellY < 0)
+                return;
+            var inc3D = this.inc * (1 / 6);
+            var subRow = Math.floor(cellX / inc3D);
+            var subCol = Math.floor(cellY / inc3D);
+            var cellCoords = [[[true, true, false, false, false],
+                    [true, true, false, false, false],
+                    [false, false, false, false, false],
+                    [false, false, false, false, false],
+                    [false, false, false, false, false]],
+                [[false, false, false, false, false],
+                    [false, false, true, false, false],
+                    [false, true, true, false, false],
+                    [false, false, false, false, false],
+                    [false, false, false, false, false]],
+                [[false, false, false, false, false],
+                    [false, false, false, false, false],
+                    [false, false, false, true, false],
+                    [false, false, true, true, false],
+                    [false, false, false, false, false]],
+                [[false, false, false, false, false],
+                    [false, false, false, false, false],
+                    [false, false, false, false, false],
+                    [false, false, false, false, true],
+                    [false, false, false, true, true]]];
+            for (var i = 0; i < cellCoords.length; i++) {
+                if (cellCoords[i][subRow][subCol])
+                    this.toggle3DCell(row, col, i);
+            }
+        }
     } // parseClick ()
     //==================================================================================================================
     //==================================================================================================================
     /**
-     * Toggle the given cell on/off by updating the canvas and change the value in the matrix.
+     * Toggle the given cell on/off by updating the canvas and change the value in matrix2D.
      *
      * @param row The row of the cell.
      * @param col The column of the cell.
      */
-    toggleCell(row, col) {
-        var numCellsSide = this.is2D ? 3 : 7;
+    toggle2DCell(row, col) {
+        var numCellsSide = 3;
         if (row > numCellsSide || col > numCellsSide)
             return;
-        this.clearCell(row, col);
-        var c; // coordinate.
-        if (this.is2D) {
-            if (this.matrix2D[row][col])
-                this.drawFullCell(row, col);
-            else
-                this.drawEmptyCell(row, col);
-            this.matrix2D[row][col] = !this.matrix2D[row][col];
-        }
-        else {
-            c = this.cellMapping3D[col][row];
-            if (this.matrix3D[c[0] - 1][c[1] - 1][c[2] - 1])
-                this.drawFullCell(row, col);
-            else
-                this.drawEmptyCell(row, col);
-            this.matrix3D[c[0] - 1][c[1] - 1][c[2] - 1] = !this.matrix3D[c[0] - 1][c[1] - 1][c[2] - 1];
-        }
+        this.matrix2D[row][col] = !this.matrix2D[row][col];
+        this.draw2DCell(row, col);
     } // toggleGridElt ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Toggle the given cell on/off by updating the canvas and change the value in matrix3D.
+     *
+     * @param row The row of the cell.
+     * @param col The column of the cell.
+     * @param d The "depth" of the cell (0, 1, 2, 3)
+     */
+    toggle3DCell(row, col, d) {
+        var numCellsSide = 3;
+        if (row > numCellsSide || col > numCellsSide)
+            return;
+        this.matrix3D[row][col][d] = !this.matrix3D[row][col][d];
+        this.draw3DCells(row, col);
+    } // toggle3DCell ()
 } // class MemIFSParamCanvas
 //======================================================================================================================
