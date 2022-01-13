@@ -71,6 +71,28 @@ function runIteration() {
     ifs.applyTransform();
 } // runIteration ()
 
+function startAnimation(ms: number) {
+    intervalID = setInterval( () => { ifs.applyTransform() }, ms );
+}
+
+function stopAnimation() {
+    clearInterval(intervalID);
+    intervalID = 0;
+}
+
+function toggleAnimation() {
+    // animation running
+    if (intervalID != 0) {
+        console.log("running");        
+        animateButton.innerHTML = "Start Animation";
+        stopAnimation();
+    } else {
+    // animation stopped
+        animateButton.innerHTML = "Stop Animation";
+        startAnimation(1000);
+    }
+}
+
 
 // Clear all cells in the parameter selector.
 function clearCells() {
@@ -104,12 +126,19 @@ const fractalCtx = fractalCanvas.getContext("2d")!;
 reDraw();
 var ifs : IFSWithMemory = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
 
+
+// Animation stuff
+var intervalID: number = 0;
+
 //======================================================================================================================
 // BUTTON SETUP
 //======================================================================================================================
 
 var runIterButton = document.getElementById("runIter")!;
 runIterButton.onclick = runIteration;
+
+var animateButton = document.getElementById("animate")!;
+animateButton.onclick = toggleAnimation;
 
 var resetIFSButton = document.getElementById("resIFS")!;
 resetIFSButton.onclick = resetIFS;

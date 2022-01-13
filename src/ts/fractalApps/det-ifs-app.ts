@@ -77,7 +77,7 @@ function applyPresetIfs(fractalName: string) {
 } // applyPresetIfs ()
 
 
-// Redraw the fractl canvas.
+// Redraw the fractal canvas.
 function reDraw() {
     ctx.fillStyle = "blue"
     ctx.putImageData(ctx.createImageData(fractalCanvas.width, fractalCanvas.height), 0, 0);
@@ -143,6 +143,28 @@ function runIteration() {
 } // runIteration ()
 
 
+function startAnimation(ms: number) {
+    intervalID = setInterval( () => { detIFS.applyTransform() }, ms );
+}
+
+function stopAnimation() {
+    clearInterval(intervalID);
+    intervalID = 0;
+}
+
+function toggleAnimation() {
+    // animation running
+    if (intervalID != 0) {
+        animateButton.innerHTML = "Start Animation";
+        stopAnimation();
+    } else {
+    // animation stopped
+        animateButton.innerHTML = "Stop Animation";
+        startAnimation(1000);
+    }
+}
+
+
 // Reset the size of the drawing canvas when the modal is opened.
 function resizeDrawingCanvas() {
     const drawingModal = <HTMLDivElement>document.getElementById("drawingModalBody");
@@ -187,6 +209,9 @@ const ctx = fractalCanvas.getContext('2d')!;
 reDraw();
 var detIFS = createIFSFromTable();
 
+// Animation stuff
+var intervalID: number = 0;
+
 //======================================================================================================================
 // BUTTON SETUP
 //======================================================================================================================
@@ -220,6 +245,9 @@ drawingModalOpenButton.onclick = activateDrawingCanvas;
 // Fractal Buttons
 var runIterButton = document.getElementById("runIter")!;
 runIterButton.onclick = runIteration;
+
+var animateButton = document.getElementById("animate")!;
+animateButton.onclick = toggleAnimation;
 
 var addRowButton = document.getElementById("addRow")!;
 addRowButton.onclick = addRow;
