@@ -66,7 +66,7 @@ export class MemIFSParamCanvas {
      * Set all of the cells to true.
      */
     clearCells() {
-        this.setCells(true);
+        this.setCells(false);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawGrid();
     } // clearCells ()
@@ -76,7 +76,7 @@ export class MemIFSParamCanvas {
      * Set all of the cells to false.
      */
     fillCells() {
-        this.setCells(false);
+        this.setCells(true);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawGrid();
     } // fillCells ()
@@ -113,7 +113,6 @@ export class MemIFSParamCanvas {
     drawGrid() {
         this.inc = this.canvas.width / 4;
         this.inc = this.canvas.width / 4;
-        var c;
         var drawEmpty = true;
         var numCellsSide = 3;
         for (var row = 0; row <= numCellsSide; row++) {
@@ -150,10 +149,8 @@ export class MemIFSParamCanvas {
         this.clearCell(row, col);
         this.ctx.beginPath();
         this.ctx.rect(row * this.inc, col * this.inc, this.inc, this.inc);
-        if (!this.matrix2D[row][col]) {
-            this.ctx.fillStyle = "blue";
-            this.ctx.fill();
-        }
+        this.ctx.fillStyle = this.matrix2D[row][col] ? "blue" : "white";
+        this.ctx.fill();
         this.ctx.stroke();
     } // draw2DCell ()
     //==================================================================================================================
@@ -173,7 +170,7 @@ export class MemIFSParamCanvas {
         for (var i = 3; i >= 0; i--) {
             this.ctx.beginPath();
             this.ctx.rect(row * this.inc + (i + 0.5) * inc3D, col * this.inc + (i + 0.5) * inc3D, 2 * inc3D, 2 * inc3D);
-            this.ctx.fillStyle = this.matrix3D[row][col][i] ? "white" : "blue";
+            this.ctx.fillStyle = this.matrix3D[row][col][i] ? "blue" : "white";
             this.ctx.fill();
             this.ctx.stroke();
         }
@@ -217,7 +214,7 @@ export class MemIFSParamCanvas {
         var row = Math.floor(clickX / this.inc);
         var col = Math.floor(clickY / this.inc);
         if (this.is2D) {
-            this.toggle2DCell(col, row);
+            this.toggle2DCell(row, col);
         }
         else {
             var cellX = clickX % this.inc - (1 / 12) * this.inc;

@@ -132,19 +132,28 @@ function createIFSFromTable(): DeterministicIFS {
 
 // Reset the iterated function system.
 function resetIFS() {
+    updateNumIters();
     reDraw();
     detIFS = createIFSFromTable();
 } // resetIFS ()
 
 
+// Update the number of iterations displayed.
+function updateNumIters() {
+    var numItersP = document.getElementById("numIters")!;
+    numItersP.innerHTML = "Iterations: " + detIFS.numIters;
+} // updateNumIters ()
+
+
 // Run an iteration of the ifs.
 function runIteration() {
     detIFS.applyTransform(); 
+    updateNumIters();
 } // runIteration ()
 
 
 function startAnimation(ms: number) {
-    intervalID = setInterval( () => { detIFS.applyTransform() }, ms );
+    intervalID = setInterval( () => { runIteration() }, ms );
 }
 
 function stopAnimation() {

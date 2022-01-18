@@ -39,6 +39,10 @@ export abstract class IFSWithMemory {
     
     // The composed, inverted transformations to use.
     transformations: number[][];
+
+    /* The number of iterations that have been performed on this IFS. */
+    numIters: number;
+
     //==================================================================================================================
 
 
@@ -49,6 +53,7 @@ export abstract class IFSWithMemory {
      * @param canvas The canvas to draw the fractal on.
      */
     constructor (canvas: HTMLCanvasElement) {
+        this.numIters = 0;
         this.transformations = [[]];
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
@@ -69,6 +74,7 @@ export abstract class IFSWithMemory {
      * Apply an iteration of the transformation.
      */
     public applyTransform(): void {
+        this.numIters++;
         var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, this.transformations);
         this.ctx.putImageData(transformedImageData, 0, 0);
     } // applyTransform ()

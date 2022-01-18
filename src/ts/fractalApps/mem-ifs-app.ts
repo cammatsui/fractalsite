@@ -51,6 +51,7 @@ function resetIFS() {
     if (ifsParamSelector.is2D) ifs = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
     else ifs = new IFSWithMemory3D(fractalCanvas, ifsParamSelector.matrix3D);
     reDraw();
+    updateNumIters();
 } // resetIFS ()
 
 
@@ -69,10 +70,18 @@ function changeDimension() {
 // Run an iteration of the IFS with memory.
 function runIteration() {
     ifs.applyTransform();
+    updateNumIters();
 } // runIteration ()
 
+
+// Update the number of iterations displayed.
+function updateNumIters() {
+    var numItersP = document.getElementById("numIters")!;
+    numItersP.innerHTML = "Iterations: " + ifs.numIters;
+} // updateNumIters ()
+
 function startAnimation(ms: number) {
-    intervalID = setInterval( () => { ifs.applyTransform() }, ms );
+    intervalID = setInterval( () => { runIteration() }, ms );
 }
 
 function stopAnimation() {

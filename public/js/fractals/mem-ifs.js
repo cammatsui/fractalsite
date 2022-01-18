@@ -20,6 +20,7 @@ export class IFSWithMemory {
      * @param canvas The canvas to draw the fractal on.
      */
     constructor(canvas) {
+        this.numIters = 0;
         this.transformations = [[]];
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
@@ -38,6 +39,7 @@ export class IFSWithMemory {
      * Apply an iteration of the transformation.
      */
     applyTransform() {
+        this.numIters++;
         var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, this.transformations);
         this.ctx.putImageData(transformedImageData, 0, 0);
     } // applyTransform ()

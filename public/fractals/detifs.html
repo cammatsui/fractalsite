@@ -31,16 +31,22 @@
             <!-- Button Panel -->
             <div class = "card">
                 <div class="container-fluid m-3">
-
-                    <a class="btn btn-primary m-2" id="runIter">Run Iteration</a>
-                    <a class="btn btn-primary m-2" id="animate">Start Animation</a>
-                    <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#ifsModal">
-                        Change IFS
-                    </button>
-                    <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#drawingModal" id="drawingModalOpen">
-                        Drawing Tools
-                    </button>
-                    <a class="btn btn-primary m-2" id="resetDr">Reset</a>
+                    <div class="row justify-content-center">
+                        <p id="numIters">Iterations: 0</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                        <a class="btn btn-primary m-2" id="runIter">Run Iteration</a>
+                        <a class="btn btn-primary m-2" id="animate">Start Animation</a>
+                        <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#ifsModal">
+                            Change IFS
+                        </button>
+                        <button type="button" class="btn btn-primary mx-3" data-bs-toggle="modal" data-bs-target="#drawingModal" id="drawingModalOpen">
+                            Drawing Tools
+                        </button>
+                        <a class="btn btn-primary m-2" id="resetDr">Reset</a>
+                    </div>
+                    </div>
                 </div>
 
             </div>

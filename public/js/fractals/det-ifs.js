@@ -39,13 +39,11 @@ export class DeterministicIFS {
      * Apply an iteration of the IFS.
      */
     applyTransform() {
-        if (this.numIters >= this.maxIters) {
-            // warn (implement later)
-            console.log("warning");
-        }
+        this.numIters++;
+        if (this.numIters > this.maxIters)
+            return;
         var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, this.affineTransformMatrices);
         this.ctx.putImageData(transformedImageData, 0, 0);
-        this.numIters++;
     } // applyTransform ()
     //==================================================================================================================
     //==================================================================================================================
