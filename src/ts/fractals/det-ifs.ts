@@ -7,7 +7,8 @@
 
 // IMPORTS
 import { ParameterizedAffineTransform } from '../types.js';
-import { createAffineMatrix, invertAffineMatrix, getTransformedImageData } from './utils/affine-transform.js';
+import { createAffineMatrix, invertAffineMatrix, getTransformedImageData, 
+    getTransformedImageDataAnimated, combineImageDatas } from './utils/affine-transform.js';
 //======================================================================================================================
 
 
@@ -76,11 +77,43 @@ export class DeterministicIFS {
 
     //==================================================================================================================
     /**
+     * Apply an iteration of the IFS with animation.
+     */
+    public async applyTransformAnimated() {
+        // Sleep function.
+        function sleep(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        this.numIters++;
+        var oldID = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        var curID = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+        var ids: ImageData[] = [];
+
+        // Create array of imagedatas for each animation iteration.
+        for (var i = 0; i < this.affineTransformMatrices.length; i++) {
+            var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height,
+                this.affineTransformMatrices, i, oldID);
+            curID = combineImageDatas(curID, transformed, this.canvas);
+            // copy transformed
+            ids.push(new ImageData(
+                new Uint8ClampedArray(curID.data),
+                curID.width,
+                curID.height
+            ));
+        }
+
+        for (var i = 0; i < ids.length; i++) {
+            await sleep(100*(i+1));
+            this.ctx.putImageData(ids[i], 0, 0);
+        }
+    } // applyTransform ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
      * Apply an iteration of the IFS.
      */
     public applyTransform(): void {
         this.numIters++;
-        if (this.numIters > this.maxIters) return;
         var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, 
             this.affineTransformMatrices);
         this.ctx.putImageData(transformedImageData, 0, 0);

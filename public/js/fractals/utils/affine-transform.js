@@ -138,6 +138,61 @@ export function getTransformedImageData(ctx, width, height, affineTransformMatri
 //======================================================================================================================
 //======================================================================================================================
 /**
+ * Get an ImageData object representing the next iteration of the IFS based on the provided affine
+ * transformation. To do this, we look at each pixel in the *output* ImageData, apply each of the inverse
+ * transformations, and see if there is a non-transparent pixel for any of them. If so, we set the output
+ * pixel to one of the colors.
+ *
+ * @param ctx       The canvas context.
+ * @param width     The canvas width.
+ * @param height    The canvas height.
+ * @param affineTransformMatrices  Affine transform matrices representing the IFS.
+ * @returns The ImageData transformed according to the IFS.
+ */
+export function getTransformedImageDataAnimated(ctx, width, height, affineTransformMatrices, transformIdx, oldID) {
+    var iD = ctx.createImageData(width, height);
+    for (var x = 0; x <= width; x++) {
+        for (var y = 0; y <= height; y++) {
+            var coordTo = { x: x, y: y };
+            var matrix = affineTransformMatrices[transformIdx];
+            var coordFrom = applyAffineMatrix(matrix, coordTo);
+            convertCoord(coordTo, height);
+            convertCoord(coordFrom, height);
+            if (coordFrom.x >= 0 && coordFrom.x < width && coordFrom.y >= 0 && coordFrom.y < height) {
+                if (getAlpha(oldID, coordFrom) > 0 || getAlpha(iD, coordTo) == 0) {
+                    copyPixel(oldID, coordFrom, iD, coordTo, width);
+                }
+            }
+        }
+    }
+    return iD;
+} // getTransformedImageData ()
+//======================================================================================================================
+//======================================================================================================================
+/**
+ * Combine two ImageData objects together by layering them on top of each other.
+ *
+ * @param id1 The first ImageData to combine.
+ * @param id2 The second ImageData to combine.
+ * @param canvas The relevant canvas.
+ * @returns The combined ImageData.
+ */
+export function combineImageDatas(id1, id2, canvas) {
+    var finalID = canvas.getContext("2d").createImageData(canvas.width, canvas.height);
+    for (var x = 0; x <= canvas.width; x++) {
+        for (var y = 0; y <= canvas.height; y++) {
+            var coord = { x: x, y: y };
+            if (getAlpha(id1, coord) > 0)
+                copyPixel(id1, coord, finalID, coord, canvas.width);
+            if (getAlpha(id2, coord) > 0)
+                copyPixel(id2, coord, finalID, coord, canvas.width);
+        }
+    }
+    return finalID;
+} // combineImageDatas ()
+//======================================================================================================================
+//======================================================================================================================
+/**
  * Compose a list of affine transforms.
  *
  * @param transforms The list of affine transforms (in matrix form) to compose.

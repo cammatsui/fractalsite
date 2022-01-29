@@ -24,6 +24,7 @@ function moveDrawing() {
     ctx.scale(scalingFactor, scalingFactor);
     ctx.drawImage(drawingCanvas, 0, 0);
     ctx.scale(1 / scalingFactor, 1 / scalingFactor);
+    // close drawing modal
 } // moveDrawing ()
 // Get a preset IFS.
 function getPresetIfs(fractalName) {
@@ -111,9 +112,11 @@ function createIFSFromTable() {
 } // createIFSFromTable ()
 // Reset the iterated function system.
 function resetIFS() {
-    updateNumIters();
-    reDraw();
+    warned = false;
+    console.log(detIFS.numIters);
     detIFS = createIFSFromTable();
+    reDraw();
+    updateNumIters();
 } // resetIFS ()
 // Update the number of iterations displayed.
 function updateNumIters() {
@@ -122,16 +125,27 @@ function updateNumIters() {
 } // updateNumIters ()
 // Run an iteration of the ifs.
 function runIteration() {
-    detIFS.applyTransform();
-    updateNumIters();
+    if (detIFS.numIters > detIFS.maxIters && !warned) {
+        alert("Warning: Maximum Recommended Iterations Reached. Proceeding will cause IFS to fade.");
+        stopAnimation();
+        warned = true;
+    }
+    else {
+        //detIFS.applyTransform(); 
+        detIFS.applyTransformAnimated();
+        updateNumIters();
+    }
 } // runIteration ()
+// Start the animation.
 function startAnimation(ms) {
     intervalID = setInterval(() => { runIteration(); }, ms);
-}
+} // startAnimation ()
+// Stop the animation.
 function stopAnimation() {
     clearInterval(intervalID);
     intervalID = 0;
-}
+} // stopAnimation ()
+// Toggle the animation on/off.
 function toggleAnimation() {
     // animation running
     if (intervalID != 0) {
@@ -143,7 +157,7 @@ function toggleAnimation() {
         animateButton.innerHTML = "Stop Animation";
         startAnimation(1000);
     }
-}
+} // toggleAnimation ()
 // Reset the size of the drawing canvas when the modal is opened.
 function resizeDrawingCanvas() {
     const drawingModal = document.getElementById("drawingModalBody");
@@ -178,6 +192,8 @@ reDraw();
 var detIFS = createIFSFromTable();
 // Animation stuff
 var intervalID = 0;
+// For warning
+var warned = false;
 //======================================================================================================================
 // BUTTON SETUP
 //======================================================================================================================
@@ -213,7 +229,7 @@ resetIFSButton.onclick = resetIFS;
 var moveDrawingButton = document.getElementById("moveDr");
 moveDrawingButton.onclick = moveDrawing;
 var resetButton = document.getElementById("resetDr");
-resetButton.onclick = reDraw;
+resetButton.onclick = resetIFS;
 // set up preset event listeners
 var presetIfsOptions = document.getElementById("ifsDropDown");
 var options = Array.from(presetIfsOptions.getElementsByTagName("a"));

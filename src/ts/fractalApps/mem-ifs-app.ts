@@ -48,6 +48,7 @@ function drawGrid() {
 
 // Reset the MemIFS.
 function resetIFS() {
+    warned = false;
     if (ifsParamSelector.is2D) ifs = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
     else ifs = new IFSWithMemory3D(fractalCanvas, ifsParamSelector.matrix3D);
     reDraw();
@@ -69,8 +70,14 @@ function changeDimension() {
 
 // Run an iteration of the IFS with memory.
 function runIteration() {
-    ifs.applyTransform();
-    updateNumIters();
+    if (ifs.numIters > ifs.maxIters && !warned) {
+        alert("Warning: Maximum Recommended Iterations Reached. Proceeding will cause IFS to fade.");
+        stopAnimation();
+        warned = true;
+    } else {
+        ifs.applyTransform();
+        updateNumIters();
+    }
 } // runIteration ()
 
 
@@ -80,15 +87,21 @@ function updateNumIters() {
     numItersP.innerHTML = "Iterations: " + ifs.numIters;
 } // updateNumIters ()
 
+
+// Start the animation.
 function startAnimation(ms: number) {
     intervalID = setInterval( () => { runIteration() }, ms );
-}
+} // startAnimation ()
 
+
+// Stop the animation.
 function stopAnimation() {
     clearInterval(intervalID);
     intervalID = 0;
-}
+} // stopAnimation ()
 
+
+// Toggle animation on/off.
 function toggleAnimation() {
     // animation running
     if (intervalID != 0) {
@@ -100,7 +113,7 @@ function toggleAnimation() {
         animateButton.innerHTML = "Stop Animation";
         startAnimation(1000);
     }
-}
+} // toggleAnimation ()
 
 
 // Clear all cells in the parameter selector.
@@ -135,9 +148,11 @@ const fractalCtx = fractalCanvas.getContext("2d")!;
 reDraw();
 var ifs : IFSWithMemory = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
 
-
 // Animation stuff
 var intervalID: number = 0;
+
+// For warning
+var warned = false;
 
 //======================================================================================================================
 // BUTTON SETUP

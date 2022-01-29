@@ -8,6 +8,7 @@
 // IMPORTS
 import { DrawingCanvas } from '../etc/drawing.js';
 import { DeterministicIFS } from '../fractals/det-ifs.js';
+//import { DeterministicIFS } from '../fractals/det-ifs.js';
 import { ParameterizedAffineTransform } from '../types.js';
 import { presetIfs } from '../etc/presetIfs.js';
 //======================================================================================================================
@@ -31,6 +32,8 @@ function moveDrawing() {
     ctx.scale(scalingFactor, scalingFactor);
     ctx.drawImage(drawingCanvas, 0, 0);
     ctx.scale(1/scalingFactor, 1/scalingFactor);
+
+    // close drawing modal
 } // moveDrawing ()
 
 
@@ -132,9 +135,11 @@ function createIFSFromTable(): DeterministicIFS {
 
 // Reset the iterated function system.
 function resetIFS() {
-    updateNumIters();
-    reDraw();
+    warned = false;
+    console.log(detIFS.numIters);
     detIFS = createIFSFromTable();
+    reDraw();
+    updateNumIters();
 } // resetIFS ()
 
 
@@ -147,20 +152,32 @@ function updateNumIters() {
 
 // Run an iteration of the ifs.
 function runIteration() {
-    detIFS.applyTransform(); 
-    updateNumIters();
+    if (detIFS.numIters > detIFS.maxIters && !warned) {
+        alert("Warning: Maximum Recommended Iterations Reached. Proceeding will cause IFS to fade.");
+        stopAnimation();
+        warned = true;
+    } else {
+        //detIFS.applyTransform(); 
+        detIFS.applyTransformAnimated(); 
+        updateNumIters();
+    }
 } // runIteration ()
 
 
+// Start the animation.
 function startAnimation(ms: number) {
     intervalID = setInterval( () => { runIteration() }, ms );
-}
+} // startAnimation ()
 
+
+// Stop the animation.
 function stopAnimation() {
     clearInterval(intervalID);
     intervalID = 0;
-}
+} // stopAnimation ()
 
+
+// Toggle the animation on/off.
 function toggleAnimation() {
     // animation running
     if (intervalID != 0) {
@@ -171,7 +188,7 @@ function toggleAnimation() {
         animateButton.innerHTML = "Stop Animation";
         startAnimation(1000);
     }
-}
+} // toggleAnimation ()
 
 
 // Reset the size of the drawing canvas when the modal is opened.
@@ -220,6 +237,9 @@ var detIFS = createIFSFromTable();
 
 // Animation stuff
 var intervalID: number = 0;
+
+// For warning
+var warned = false;
 
 //======================================================================================================================
 // BUTTON SETUP
@@ -271,7 +291,7 @@ var moveDrawingButton = document.getElementById("moveDr")!;
 moveDrawingButton.onclick = moveDrawing;
 
 var resetButton = document.getElementById("resetDr")!;
-resetButton.onclick = reDraw;
+resetButton.onclick = resetIFS;
 
 // set up preset event listeners
 var presetIfsOptions = document.getElementById("ifsDropDown")!;

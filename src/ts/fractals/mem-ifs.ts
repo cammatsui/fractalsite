@@ -43,6 +43,9 @@ export abstract class IFSWithMemory {
     /* The number of iterations that have been performed on this IFS. */
     numIters: number;
 
+    /* The maximum number of iterations before disappearing. */
+    maxIters: number;
+
     //==================================================================================================================
 
 
@@ -52,7 +55,7 @@ export abstract class IFSWithMemory {
      * 
      * @param canvas The canvas to draw the fractal on.
      */
-    constructor (canvas: HTMLCanvasElement) {
+    constructor (canvas: HTMLCanvasElement, matrix: any) {
         this.numIters = 0;
         this.transformations = [[]];
         this.canvas = canvas;
@@ -65,7 +68,38 @@ export abstract class IFSWithMemory {
             createAffineMatrix(0.5, 0.5, 0, 0, 0, 0.5, this.width, this.height),
             createAffineMatrix(0.5, 0.5, 0, 0, 0.5, 0.5, this.width, this.height),
         ];
+        this.transformations = this.getTransformationsFromMatrix(matrix);
+        this.maxIters = this.findMaxIters();
     } // constructor ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    // ABSTRACT METHODS
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Get the correct transformations matrices.
+     * 
+     * @param matrix The original matrix for allowing/disallowing compositions.
+     * @returns The inverted, correct transformation matrices.
+     */
+    abstract getTransformationsFromMatrix(matrix : any) : number[][];
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Find the minimum scaling factor out of the allowed transforms.
+     */
+    abstract findMinScalingFactor() : number;
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    // INSTANCE METHODS
     //==================================================================================================================
 
 
@@ -82,7 +116,47 @@ export abstract class IFSWithMemory {
 
 
     //==================================================================================================================
-    // INSTANCE METHODS
+    /**
+     * Find the minimum on the x or y axis of drawn pixels.
+     * 
+     * @returns The minimum dimension.
+     */
+    private findMinDrawingDimension(): number {
+        var iD = this.ctx.getImageData(0, 0, this.width, this.height);
+        var minX = this.width;
+        var maxX = 0;
+        var minY = this.height;
+        var maxY = 0;
+        for (var x = 0; x < this.width; x++) {
+            for (var y = 0; y < this.height; y++) {
+                if (iD.data[(y*iD.width + x)*4 + 3] != 0) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        return Math.min(maxX-minX, maxY-minY);
+    }// findMinDrawingDimension ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Calculate the maximum number of iterations for the IFS based on the input image, canvas dimensions,
+     * and minimum scaling factor of the transformations.
+     * 
+     * @param transformParams The transformaton parameters.
+     * @returns The maximum number of iterations.
+     */
+    private findMaxIters(): number {
+        var minDim = this.findMinDrawingDimension();
+        var minScalingFactor = this.findMinScalingFactor();
+        // if square of minDim, how many times can we multiply by minScalingFactor to get to 1?
+        //  i = log_{minScalingFactor}(1/minDim)
+        return Math.floor(Math.log(1/minDim) / Math.log(minScalingFactor))
+    } // findMaxIters ()
     //==================================================================================================================
 
 
@@ -109,8 +183,7 @@ export class IFSWithMemory2D extends IFSWithMemory {
      * @param matrix The 2d boolean matrix to allow/disallow composed transformations.
      */
     constructor(canvas: HTMLCanvasElement, matrix: boolean[][]) {
-        super(canvas);
-        this.transformations = this.getTransformationsFromMatrix(matrix);
+        super(canvas, matrix);
     } // constructor();
     //==================================================================================================================
 
@@ -122,18 +195,29 @@ export class IFSWithMemory2D extends IFSWithMemory {
      * @param matrix The original matrix for allowing/disallowing compositions.
      * @returns The inverted, correct transformation matrices.
      */
-    private getTransformationsFromMatrix(matrix: boolean[][]) {
+    getTransformationsFromMatrix(matrix: boolean[][]) {
         var transformations = [];
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 4; j++) {
                 if (!matrix[i][j]) continue;
-                var thisTransform = invertAffineMatrix(composeAffineTransforms([this.baseTransformations[i], 
-                    this.baseTransformations[j]]));
+                var composedTransform = composeAffineTransforms([this.baseTransformations[i], 
+                    this.baseTransformations[j]]);
+                var thisTransform = invertAffineMatrix(composedTransform);
                 transformations.push(thisTransform);
             }
         }
         return transformations;
     } // getTransformationsFromMatrix ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Return the minimum scaling factor out of the allowed transforms.
+     */
+    findMinScalingFactor(): number {
+        return 0.25;
+    } // findMinScalingFactor ()
     //==================================================================================================================
 
 
@@ -160,8 +244,7 @@ export class IFSWithMemory3D extends IFSWithMemory {
      * @param matrix The 3d boolean matrix to allow/disallow composed transformations.
      */
     constructor(canvas: HTMLCanvasElement, matrix: boolean[][][]) {
-        super(canvas);
-        this.transformations = this.getTransformationsFromMatrix(matrix);
+        super(canvas, matrix);
     } // constructor();
     //==================================================================================================================
 
@@ -173,20 +256,31 @@ export class IFSWithMemory3D extends IFSWithMemory {
      * @param matrix The original matrix for allowing/disallowing compositions.
      * @returns The inverted, correct transformation matrices.
      */
-    private getTransformationsFromMatrix(matrix: boolean[][][]) {
+    getTransformationsFromMatrix(matrix: boolean[][][]) {
         var transformations = [];
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 4; j++) {
                 for (var k = 0; k < 4; k++) {
                     if (!matrix[i][j][k]) continue;
-                    var thisTransform = invertAffineMatrix(composeAffineTransforms([this.baseTransformations[i], 
-                        this.baseTransformations[j], this.baseTransformations[k]]));
+                    var composedTransform = composeAffineTransforms([this.baseTransformations[i], 
+                        this.baseTransformations[j], this.baseTransformations[k]]);
+                    var thisTransform = invertAffineMatrix(composedTransform);
                     transformations.push(thisTransform);
                 }
             }
         }
         return transformations;
     } // getTransformationsFromMatrix ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Return the min scaling factor out of the allowed transforms.
+     */
+    findMinScalingFactor(): number {
+        return 0.125;
+    } // findMinScalingFactor ()
     //==================================================================================================================
 
 

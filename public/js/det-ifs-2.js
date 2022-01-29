@@ -4,16 +4,7 @@
  * @author Cameron Matsui (cmatsui22@amherst.edu)
  * @date December 2021.
  */
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-import { createAffineMatrix, invertAffineMatrix, getTransformedImageData, getTransformedImageDataAnimated, combineImageDatas } from './utils/affine-transform.js';
+import { createAffineMatrix, invertAffineMatrix, getTransformedImageData } from './utils/affine-transform.js';
 //======================================================================================================================
 //======================================================================================================================
 /**
@@ -42,32 +33,6 @@ export class DeterministicIFS {
         });
         console.log(this.affineTransformMatrices);
     } // constructor ()
-    //==================================================================================================================
-    //==================================================================================================================
-    /**
-     * Apply an iteration of the IFS with animation.
-     */
-    applyTransformAnimated() {
-        return __awaiter(this, void 0, void 0, function* () {
-            // Sleep function.
-            function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-            this.numIters++;
-            var oldID = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            var curID = this.ctx.createImageData(this.canvas.width, this.canvas.height);
-            var ids = [];
-            // Create array of imagedatas for each animation iteration.
-            for (var i = 0; i < this.affineTransformMatrices.length; i++) {
-                var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height, this.affineTransformMatrices, i, oldID);
-                curID = combineImageDatas(curID, transformed, this.canvas);
-                // copy transformed
-                ids.push(new ImageData(new Uint8ClampedArray(curID.data), curID.width, curID.height));
-            }
-            for (var i = 0; i < ids.length; i++) {
-                yield sleep(100 * (i + 1));
-                this.ctx.putImageData(ids[i], 0, 0);
-            }
-        });
-    } // applyTransform ()
     //==================================================================================================================
     //==================================================================================================================
     /**
