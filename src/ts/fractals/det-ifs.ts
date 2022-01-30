@@ -101,8 +101,8 @@ export class DeterministicIFS {
         }
 
         for (var i = 0; i < ids.length; i++) {
-            await sleep(100*(i+1));
             this.ctx.putImageData(ids[i], 0, 0);
+            if (i != ids.length-1) await sleep(220);
         }
     } // applyTransform ()
     //==================================================================================================================

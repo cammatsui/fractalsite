@@ -63,8 +63,9 @@ export class DeterministicIFS {
                 ids.push(new ImageData(new Uint8ClampedArray(curID.data), curID.width, curID.height));
             }
             for (var i = 0; i < ids.length; i++) {
-                yield sleep(100 * (i + 1));
                 this.ctx.putImageData(ids[i], 0, 0);
+                if (i != ids.length - 1)
+                    yield sleep(220);
             }
         });
     } // applyTransform ()
