@@ -160,21 +160,6 @@ export class MemIFSParamCanvas {
 
     //==================================================================================================================
     /**
-     * Draw an empty (allowed) cell at the given row/column position.
-     * 
-     * @param row The row of the cell.
-     * @param col The column of the cell.
-     */
-    private drawEmptyCell(row: number, col: number) {
-        this.ctx.beginPath();
-        this.ctx.rect(row*this.inc, col*this.inc, this.inc, this.inc);
-        this.ctx.stroke();
-    } // drawClearRect ()
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
      * Draw the 2D cell based on the state of matrix2D at the given row and column.
      * 
      * @param row The row to draw the correct cell at.
@@ -184,7 +169,7 @@ export class MemIFSParamCanvas {
         this.clearCell(row, col);
         this.ctx.beginPath();
         this.ctx.rect(row*this.inc, col*this.inc, this.inc, this.inc);
-        this.ctx.fillStyle = this.matrix2D[row][col] ? "blue" : "white";
+        this.ctx.fillStyle = this.matrix2D[col][row] ? "blue" : "white";
         this.ctx.fill();
         this.ctx.stroke();
     } // draw2DCell ()
@@ -207,7 +192,7 @@ export class MemIFSParamCanvas {
         for (var i = 3; i >= 0; i--) {
             this.ctx.beginPath();
             this.ctx.rect(row*this.inc + (i+0.5)*inc3D, col*this.inc + (i+0.5)*inc3D, 2*inc3D, 2*inc3D);
-            this.ctx.fillStyle = this.matrix3D[row][col][i] ? "blue" : "white";
+            this.ctx.fillStyle = this.matrix3D[col][row][i] ? "blue" : "white";
             this.ctx.fill();
             this.ctx.stroke();
         }
@@ -304,7 +289,7 @@ export class MemIFSParamCanvas {
     private toggle2DCell(row: number, col: number) {
         var numCellsSide = 3;
         if (row > numCellsSide || col > numCellsSide) return;
-        this.matrix2D[row][col] = !this.matrix2D[row][col];
+        this.matrix2D[col][row] = !this.matrix2D[col][row];
         this.draw2DCell(row, col);
     } // toggleGridElt ()
     //==================================================================================================================
@@ -321,7 +306,7 @@ export class MemIFSParamCanvas {
     private toggle3DCell(row: number, col: number, d: number) {
         var numCellsSide = 3;
         if (row > numCellsSide || col > numCellsSide) return;
-        this.matrix3D[row][col][d] = !this.matrix3D[row][col][d];
+        this.matrix3D[col][row][d] = !this.matrix3D[col][row][d];
         this.draw3DCells(row, col);
     } // toggle3DCell ()
     //==================================================================================================================

@@ -8,7 +8,6 @@
 // IMPORTS
 import { DrawingCanvas } from '../etc/drawing.js';
 import { DeterministicIFS } from '../fractals/det-ifs.js';
-//import { DeterministicIFS } from '../fractals/det-ifs.js';
 import { ParameterizedAffineTransform } from '../types.js';
 import { presetIfs } from '../etc/presetIfs.js';
 //======================================================================================================================
@@ -32,7 +31,6 @@ function moveDrawing() {
     ctx.scale(scalingFactor, scalingFactor);
     ctx.drawImage(drawingCanvas, 0, 0);
     ctx.scale(1/scalingFactor, 1/scalingFactor);
-
     // close drawing modal
 } // moveDrawing ()
 
