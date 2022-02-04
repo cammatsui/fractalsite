@@ -25,6 +25,7 @@ function setColor(color: string) {
 
 // Fractal Functions
 function moveDrawing() {
+    resetIFS();
     ctx.scale(1, 1);
     ctx.clearRect(0, 0, fractalCanvas.width, fractalCanvas.height);
     var scalingFactor = fractalCanvas.width / drawingCanvas.width;
@@ -134,7 +135,6 @@ function createIFSFromTable(): DeterministicIFS {
 // Reset the iterated function system.
 function resetIFS() {
     warned = false;
-    console.log(detIFS.numIters);
     detIFS = createIFSFromTable();
     reDraw();
     updateNumIters();
@@ -151,7 +151,7 @@ function updateNumIters() {
 // Run an iteration of the ifs.
 function runIteration() {
     if (detIFS.numIters > detIFS.maxIters && !warned) {
-        alert("Warning: Maximum Recommended Iterations Reached. Proceeding will cause IFS to fade.");
+        alert("Warning: maximum recommended iterations reached based on your screen resolution. Proceeding may cause IFS to fade.");
         stopAnimation();
         warned = true;
     } else {
@@ -160,6 +160,15 @@ function runIteration() {
         updateNumIters();
     }
 } // runIteration ()
+
+
+// Run an iteraton after checking that iteration is enabled.
+function runIterationFromButton() {
+    if (!iterationEnabled || intervalID != 0) return;
+    runIteration();
+    iterationEnabled = false;
+    setTimeout( () => { iterationEnabled  = true }, 500);
+} // runIterationFromButton();
 
 
 // Start the animation.
@@ -181,10 +190,12 @@ function toggleAnimation() {
     if (intervalID != 0) {
         animateButton.innerHTML = "Start Animation";
         stopAnimation();
+        iterationEnabled = true;
     } else {
     // animation stopped
         animateButton.innerHTML = "Stop Animation";
         startAnimation(1000);
+        iterationEnabled = false;
     }
 } // toggleAnimation ()
 
@@ -239,6 +250,8 @@ var intervalID: number = 0;
 // For warning
 var warned = false;
 
+var iterationEnabled = true;
+
 //======================================================================================================================
 // BUTTON SETUP
 //======================================================================================================================
@@ -271,7 +284,7 @@ drawingModalOpenButton.onclick = activateDrawingCanvas;
 
 // Fractal Buttons
 var runIterButton = document.getElementById("runIter")!;
-runIterButton.onclick = runIteration;
+runIterButton.onclick = runIterationFromButton;
 
 var animateButton = document.getElementById("animate")!;
 animateButton.onclick = toggleAnimation;

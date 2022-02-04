@@ -71,7 +71,7 @@ function changeDimension() {
 // Run an iteration of the IFS with memory.
 function runIteration() {
     if (ifs.numIters > ifs.maxIters && !warned) {
-        alert("Warning: Maximum Recommended Iterations Reached. Proceeding will cause IFS to fade.");
+        alert("Warning: maximum recommended iterations reached based on your screen resolution. Proceeding may cause IFS to fade.");
         stopAnimation();
         warned = true;
     } else {
@@ -79,6 +79,15 @@ function runIteration() {
         updateNumIters();
     }
 } // runIteration ()
+
+
+// Run an iteration after checking if iteration is enabled.
+function runIterationFromButton() {
+    if (!iterationEnabled || intervalID != 0) return;
+    runIteration();
+    iterationEnabled = false;
+    setTimeout( () => { iterationEnabled  = true }, 500);
+} // runIterationFromButton();
 
 
 // Update the number of iterations displayed.
@@ -105,13 +114,14 @@ function stopAnimation() {
 function toggleAnimation() {
     // animation running
     if (intervalID != 0) {
-        console.log("running");        
         animateButton.innerHTML = "Start Animation";
         stopAnimation();
+        iterationEnabled = true;
     } else {
     // animation stopped
         animateButton.innerHTML = "Stop Animation";
         startAnimation(1000);
+        iterationEnabled = false;
     }
 } // toggleAnimation ()
 
@@ -125,7 +135,7 @@ function clearCells() {
 // Fill all cells in the parameter selector.
 function fillCells() {
     ifsParamSelector.fillCells();
-}
+} // fillCells ()
 
 //======================================================================================================================
 // INITIALIZATION
@@ -154,12 +164,15 @@ var intervalID: number = 0;
 // For warning
 var warned = false;
 
+// To stop iteration button.
+var iterationEnabled = true;
+
 //======================================================================================================================
 // BUTTON SETUP
 //======================================================================================================================
 
 var runIterButton = document.getElementById("runIter")!;
-runIterButton.onclick = runIteration;
+runIterButton.onclick = runIterationFromButton;
 
 var animateButton = document.getElementById("animate")!;
 animateButton.onclick = toggleAnimation;
