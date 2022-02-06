@@ -13,7 +13,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { createAffineMatrix, invertAffineMatrix, getTransformedImageData, getTransformedImageDataAnimated, combineImageDatas } from './utils/affine-transform.js';
+import { createAffineMatrix, invertAffineMatrix, getTransformedImageDataAnimated, combineImageDatas } from './utils/affine-transform.js';
 //======================================================================================================================
 //======================================================================================================================
 /**
@@ -29,19 +29,21 @@ export class DeterministicIFS {
      * The constructor for the DeterministicIFS.
      */
     constructor(canvas, transformParameters) {
+        /* The delay (in ms) between applying each affine transform in animation. */
+        this.AFFINE_DELAY = 220;
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
-        this.width = canvas.width;
-        this.height = canvas.height;
         this.numIters = 0;
         this.affineTransformMatrices = [];
-        this.maxIters = this.findMaxIters(transformParameters);
+        this.maxIters = this.findMaxIters(transformParameters) - 1;
         // Convert the parameterized affine transforms into inverted matrices.
         transformParameters.forEach(t => {
-            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, this.width, this.height));
+            // Invert the matrix, and check if it is valid (invertible and numbers will return a valid matrix).
+            //  If not, throw an error.
+            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, this.canvas.width, this.canvas.height));
             for (var i = 0; i < inverted.length; i++) {
                 if (isNaN(inverted[i]))
-                    throw new Error("invalid matrix");
+                    throw new Error("Invalid affine transform.");
             }
             this.affineTransformMatrices.push(inverted);
         });
@@ -56,33 +58,27 @@ export class DeterministicIFS {
             // Sleep function.
             function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
             this.numIters++;
+            // oldID is the ImageData of the previous iteration; curID used to store the current animation frame.
             var oldID = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
             var curID = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+            // ids holds the resulting ImageDatas for animation.
             var ids = [];
-            // Create array of imagedatas for each animation iteration.
             for (var i = 0; i < this.affineTransformMatrices.length; i++) {
+                // Get the result of applying the ith transform to the previous iteration.
                 var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height, this.affineTransformMatrices, i, oldID);
+                // Combine the previous animation frame and the transformed image data.
                 curID = combineImageDatas(curID, transformed, this.canvas);
-                // copy transformed
+                // Copy the new animation frame and store it.
                 ids.push(new ImageData(new Uint8ClampedArray(curID.data), curID.width, curID.height));
             }
+            // Run the animation.
             for (var i = 0; i < ids.length; i++) {
                 this.ctx.putImageData(ids[i], 0, 0);
                 if (i != ids.length - 1)
-                    yield sleep(220);
+                    yield sleep(this.AFFINE_DELAY);
             }
         });
-    } // applyTransform ()
-    //==================================================================================================================
-    //==================================================================================================================
-    /**
-     * Apply an iteration of the IFS.
-     */
-    applyTransform() {
-        this.numIters++;
-        var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, this.affineTransformMatrices);
-        this.ctx.putImageData(transformedImageData, 0, 0);
-    } // applyTransform ()
+    } // applyTransformAnimated ()
     //==================================================================================================================
     //==================================================================================================================
     /**
@@ -101,22 +97,19 @@ export class DeterministicIFS {
      * @returns The minimum dimension.
      */
     findMinDrawingDimension() {
-        var iD = this.ctx.getImageData(0, 0, this.width, this.height);
-        var minX = this.width;
+        var iD = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        // Find the minimum/maximumum x and y values containing non-empty pixels.
+        var minX = this.canvas.width;
         var maxX = 0;
-        var minY = this.height;
+        var minY = this.canvas.height;
         var maxY = 0;
-        for (var x = 0; x < this.width; x++) {
-            for (var y = 0; y < this.height; y++) {
+        for (var x = 0; x < this.canvas.width; x++) {
+            for (var y = 0; y < this.canvas.height; y++) {
                 if (iD.data[(y * iD.width + x) * 4 + 3] != 0) {
-                    if (x < minX)
-                        minX = x;
-                    if (x > maxX)
-                        maxX = x;
-                    if (y < minY)
-                        minY = y;
-                    if (y > maxY)
-                        maxY = y;
+                    minX = Math.min(x, minX);
+                    maxX = Math.max(x, maxX);
+                    minY = Math.min(y, minY);
+                    maxY = Math.max(y, maxY);
                 }
             }
         }

@@ -7,8 +7,8 @@
 
 // IMPORTS
 import { ParameterizedAffineTransform } from '../types.js';
-import { createAffineMatrix, invertAffineMatrix, getTransformedImageData, 
-    getTransformedImageDataAnimated, combineImageDatas } from './utils/affine-transform.js';
+import { createAffineMatrix, invertAffineMatrix, getTransformedImageDataAnimated, 
+    combineImageDatas } from './utils/affine-transform.js';
 //======================================================================================================================
 
 
@@ -28,12 +28,6 @@ export class DeterministicIFS {
 
     /* The context to draw the fractal with. */
     readonly ctx: CanvasRenderingContext2D;
-
-    /* The width of the canvas in pixels. */
-    readonly width: number;
-
-    /* The height of the canvas in pixels. */
-    readonly height: number;
     
     /* The matrices representing affine transforms for this IFS. */
     readonly affineTransformMatrices: number[][];
@@ -43,6 +37,10 @@ export class DeterministicIFS {
 
     /* The maximum number of iterations before disintegration. */
     readonly maxIters: number;
+
+    /* The delay (in ms) between applying each affine transform in animation. */
+    readonly AFFINE_DELAY = 220;
+
     //==================================================================================================================
 
 
@@ -58,17 +56,18 @@ export class DeterministicIFS {
     constructor(canvas: HTMLCanvasElement, transformParameters: ParameterizedAffineTransform[]) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
-        this.width = canvas.width;
-        this.height = canvas.height;
         this.numIters = 0;
         this.affineTransformMatrices = []
-        this.maxIters = this.findMaxIters(transformParameters);
+        this.maxIters = this.findMaxIters(transformParameters)-1;
 
         // Convert the parameterized affine transforms into inverted matrices.
         transformParameters.forEach(t => {
-            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, this.width, this.height))
+            // Invert the matrix, and check if it is valid (invertible and numbers will return a valid matrix).
+            //  If not, throw an error.
+            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, 
+                this.canvas.width, this.canvas.height));
             for (var i = 0; i < inverted.length; i++) {
-                if (isNaN(inverted[i])) throw new Error("invalid matrix");
+                if (isNaN(inverted[i])) throw new Error("Invalid affine transform."); 
             }
             this.affineTransformMatrices.push(inverted);
         })
@@ -83,17 +82,21 @@ export class DeterministicIFS {
     public async applyTransformAnimated() {
         // Sleep function.
         function sleep(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
         this.numIters++;
-        var oldID = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        // oldID is the ImageData of the previous iteration; curID used to store the current animation frame.
+        var oldID = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height); 
         var curID = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+        // ids holds the resulting ImageDatas for animation.
         var ids: ImageData[] = [];
 
-        // Create array of imagedatas for each animation iteration.
         for (var i = 0; i < this.affineTransformMatrices.length; i++) {
+            // Get the result of applying the ith transform to the previous iteration.
             var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height,
                 this.affineTransformMatrices, i, oldID);
+            // Combine the previous animation frame and the transformed image data.
             curID = combineImageDatas(curID, transformed, this.canvas);
-            // copy transformed
+            // Copy the new animation frame and store it.
             ids.push(new ImageData(
                 new Uint8ClampedArray(curID.data),
                 curID.width,
@@ -101,24 +104,12 @@ export class DeterministicIFS {
             ));
         }
 
+        // Run the animation.
         for (var i = 0; i < ids.length; i++) {
             this.ctx.putImageData(ids[i], 0, 0);
-            if (i != ids.length-1) await sleep(220);
+            if (i != ids.length-1) await sleep(this.AFFINE_DELAY);
         }
-    } // applyTransform ()
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Apply an iteration of the IFS.
-     */
-    public applyTransform(): void {
-        this.numIters++;
-        var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, 
-            this.affineTransformMatrices);
-        this.ctx.putImageData(transformedImageData, 0, 0);
-    } // applyTransform ()
+    } // applyTransformAnimated ()
     //==================================================================================================================
 
 
@@ -141,18 +132,19 @@ export class DeterministicIFS {
      * @returns The minimum dimension.
      */
     private findMinDrawingDimension(): number {
-        var iD = this.ctx.getImageData(0, 0, this.width, this.height);
-        var minX = this.width;
+        var iD = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        // Find the minimum/maximumum x and y values containing non-empty pixels.
+        var minX = this.canvas.width;
         var maxX = 0;
-        var minY = this.height;
+        var minY = this.canvas.height;
         var maxY = 0;
-        for (var x = 0; x < this.width; x++) {
-            for (var y = 0; y < this.height; y++) {
+        for (var x = 0; x < this.canvas.width; x++) {
+            for (var y = 0; y < this.canvas.height; y++) {
                 if (iD.data[(y*iD.width + x)*4 + 3] != 0) {
-                    if (x < minX) minX = x;
-                    if (x > maxX) maxX = x;
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
+                    minX = Math.min(x, minX);
+                    maxX = Math.max(x, maxX);
+                    minY = Math.min(y, minY);
+                    maxY = Math.max(y, maxY);
                 }
             }
         }

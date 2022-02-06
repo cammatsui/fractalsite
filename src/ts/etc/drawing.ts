@@ -63,7 +63,7 @@ export class DrawingCanvas {
         this.prevCoordinate = {x: 0, y: 0};
         this.currCoordinate = {x: 0, y: 0};
         this.initializeCanvas();
-        this.updateDrawingTools("black", 9);
+        this.setDrawingTools("black", 9);
     } // constructor ()
     //==================================================================================================================
 
@@ -86,10 +86,10 @@ export class DrawingCanvas {
      *
      * @param newColor: The new color to draw with.
      */
-    public updateColor(newColor: string) {
+    public setColor(newColor: string) {
         this.ctx.strokeStyle = newColor;
         this.ctx.fillStyle = newColor;
-    } // updateColor ()
+    } // setColor ()
     //==================================================================================================================
 
 
@@ -100,10 +100,10 @@ export class DrawingCanvas {
      * @param newColor: The new color to draw with.
      * @param newWidth: The new pen width to draw with.
      */
-    public updateDrawingTools(newColor: string, newWidth: number) {
+    public setDrawingTools(newColor: string, newWidth: number) {
         this.ctx.lineWidth = newWidth;
         this.ctx.strokeStyle = newColor;
-    } // updateDrawingTools ()
+    } // setDrawingTools ()
     //==================================================================================================================
 
 
@@ -112,7 +112,7 @@ export class DrawingCanvas {
      * Reset the canvas' drawing tools.
      */
     public resetDrawingTools() {
-        this.updateDrawingTools(this.defaultColor, this.defaultWidth);
+        this.setDrawingTools(this.defaultColor, this.defaultWidth);
     } // resetDrawingTools ()
     //==================================================================================================================
 

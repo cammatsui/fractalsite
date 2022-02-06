@@ -13,23 +13,25 @@ import { presetIfs } from '../etc/presetIfs.js';
 // FUNCTIONS
 //======================================================================================================================
 // Drawing Functions
+// Set the color of the pen on the drawing canvas.
 function setColor(color) {
-    drawing.updateColor(color);
+    drawing.setColor(color);
 } // setColor ()
 // Fractal Functions
+// Move the drawing to the fractal canvas to be used for the IFS.
 function moveDrawing() {
-    resetIFS();
+    resetIFS(); // reset the IFS so that iterations etc reset.
     ctx.scale(1, 1);
     ctx.clearRect(0, 0, fractalCanvas.width, fractalCanvas.height);
     var scalingFactor = fractalCanvas.width / drawingCanvas.width;
     ctx.scale(scalingFactor, scalingFactor);
     ctx.drawImage(drawingCanvas, 0, 0);
     ctx.scale(1 / scalingFactor, 1 / scalingFactor);
-    // close drawing modal
 } // moveDrawing ()
-// Get a preset IFS.
+// Get a preset IFS from the json object.
 function getPresetIfs(fractalName) {
     var ifs = presetIfs[0].ifs;
+    // Look through preset IFSs and find one that matches; otherwise, return Sierpinski gasket.
     presetIfs.every(preset => {
         if (preset.name == fractalName) {
             ifs = preset.ifs;
@@ -39,7 +41,7 @@ function getPresetIfs(fractalName) {
     });
     return ifs;
 } // getPresetIfs ()
-// Apply a preset deterministic ifs.
+// Apply a preset deterministic ifs from the json object.
 function applyPresetIfs(fractalName) {
     var ifs = getPresetIfs(fractalName);
     var affineTable = document.getElementById("affineTable");
@@ -64,7 +66,7 @@ function applyPresetIfs(fractalName) {
     // Reset the IFS.
     resetIFS();
 } // applyPresetIfs ()
-// Redraw the fractal canvas.
+// Redraw the fractal canvas with a blue square.
 function reDraw() {
     ctx.fillStyle = "blue";
     ctx.putImageData(ctx.createImageData(fractalCanvas.width, fractalCanvas.height), 0, 0);
@@ -78,17 +80,16 @@ function addRow() {
     var row = affineTable.insertRow(nRows);
     for (var i = 0; i < 6; i++) {
         var cell = row.insertCell(i);
-        cell.contentEditable = "true";
-        cell.innerHTML = "0";
+        cell.contentEditable = "true"; // cell is editable
+        cell.innerHTML = "0"; // default value 0
     }
 } // addRow ()
 // Delete the last row of the IFS table.
 function deleteLastRow() {
     var affineTable = document.getElementById("affineTable");
     var nRows = affineTable.rows.length;
-    if (nRows > 2) {
-        affineTable.deleteRow(nRows - 1);
-    }
+    if (nRows > 2)
+        affineTable.deleteRow(nRows - 1); // make sure that we have at least one ifs row.
 } // deleteLastRow ()
 // Create an IFS object from the table to be applied to the canvas.
 function createIFSFromTable() {
@@ -97,6 +98,7 @@ function createIFSFromTable() {
     var nRows = affineTable.rows.length;
     for (var i = 1; i < nRows; i++) {
         var row = affineTable.rows[i];
+        // get the affine parameters for this row of the table, and add them to the IFS.
         var thisRowParam = {
             r: +row.cells[0].innerText,
             s: +row.cells[1].innerText,
@@ -107,6 +109,7 @@ function createIFSFromTable() {
         };
         affineParams.push(thisRowParam);
     }
+    // Make sure that IFS is valid (matrices invertible, numbers).
     try {
         return new DeterministicIFS(fractalCanvas, affineParams);
     }
@@ -122,7 +125,7 @@ function resetIFS() {
     reDraw();
     updateNumIters();
 } // resetIFS ()
-// Update the number of iterations displayed.
+// Update the number of iterations displayed on the webpage.
 function updateNumIters() {
     var numItersP = document.getElementById("numIters");
     numItersP.innerHTML = "Iterations: " + detIFS.numIters;
@@ -130,24 +133,34 @@ function updateNumIters() {
 // Run an iteration of the ifs.
 function runIteration() {
     if (detIFS.numIters > detIFS.maxIters && !warned) {
+        if (intervalID != 0)
+            toggleAnimation();
         alert("Warning: maximum recommended iterations reached based on your screen resolution. Proceeding may cause IFS to fade.");
-        stopAnimation();
         warned = true;
     }
     else {
-        //detIFS.applyTransform(); 
         detIFS.applyTransformAnimated();
         updateNumIters();
     }
 } // runIteration ()
 // Run an iteraton after checking that iteration is enabled.
 function runIterationFromButton() {
+    // Don't run if cooldown has not expired or animation is enabled.
     if (!iterationEnabled || intervalID != 0)
         return;
     runIteration();
     iterationEnabled = false;
-    setTimeout(() => { iterationEnabled = true; }, 500);
-} // runIterationFromButton();
+    // Set a cooldown based on the number of iterations that the deterministic ifs needs.
+    var ifsCooldown = calculateIFSCooldown();
+    setTimeout(() => { iterationEnabled = true; }, ifsCooldown);
+} // runIterationFromButton ()
+// Calculate the appropriate cooldown for an IFS iteration.
+function calculateIFSCooldown() {
+    var numTransforms = detIFS.affineTransformMatrices.length;
+    console.log(numTransforms);
+    var affineDelay = detIFS.AFFINE_DELAY;
+    return (numTransforms * affineDelay) * 1.5;
+} // calculateIFSCooldown ()
 // Start the animation.
 function startAnimation(ms) {
     intervalID = setInterval(() => { runIteration(); }, ms);
@@ -159,16 +172,16 @@ function stopAnimation() {
 } // stopAnimation ()
 // Toggle the animation on/off.
 function toggleAnimation() {
-    // animation running
     if (intervalID != 0) {
+        // Animation is running => stop the animation.
         animateButton.innerHTML = "Start Animation";
         stopAnimation();
         iterationEnabled = true;
     }
     else {
-        // animation stopped
+        // Animation is stopped => start the animation.
         animateButton.innerHTML = "Stop Animation";
-        startAnimation(1000);
+        startAnimation(calculateIFSCooldown());
         iterationEnabled = false;
     }
 } // toggleAnimation ()
@@ -204,10 +217,11 @@ const ctx = fractalCanvas.getContext('2d');
 // Reset canvas and create IFS object.
 reDraw();
 var detIFS = createIFSFromTable();
-// Animation stuff
+// The interval id for animation.
 var intervalID = 0;
-// For warning
+// Whether or not the user has been warned about IFS fade.
 var warned = false;
+// Whether the user is currently allowed to run an iteration via the UI button.
 var iterationEnabled = true;
 //======================================================================================================================
 // BUTTON SETUP

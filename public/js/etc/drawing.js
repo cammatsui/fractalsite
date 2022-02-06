@@ -31,7 +31,7 @@ export class DrawingCanvas {
         this.prevCoordinate = { x: 0, y: 0 };
         this.currCoordinate = { x: 0, y: 0 };
         this.initializeCanvas();
-        this.updateDrawingTools("black", 9);
+        this.setDrawingTools("black", 9);
     } // constructor ()
     //==================================================================================================================
     //==================================================================================================================
@@ -50,10 +50,10 @@ export class DrawingCanvas {
      *
      * @param newColor: The new color to draw with.
      */
-    updateColor(newColor) {
+    setColor(newColor) {
         this.ctx.strokeStyle = newColor;
         this.ctx.fillStyle = newColor;
-    } // updateColor ()
+    } // setColor ()
     //==================================================================================================================
     //==================================================================================================================
     /**
@@ -62,17 +62,17 @@ export class DrawingCanvas {
      * @param newColor: The new color to draw with.
      * @param newWidth: The new pen width to draw with.
      */
-    updateDrawingTools(newColor, newWidth) {
+    setDrawingTools(newColor, newWidth) {
         this.ctx.lineWidth = newWidth;
         this.ctx.strokeStyle = newColor;
-    } // updateDrawingTools ()
+    } // setDrawingTools ()
     //==================================================================================================================
     //==================================================================================================================
     /**
      * Reset the canvas' drawing tools.
      */
     resetDrawingTools() {
-        this.updateDrawingTools(this.defaultColor, this.defaultWidth);
+        this.setDrawingTools(this.defaultColor, this.defaultWidth);
     } // resetDrawingTools ()
     //==================================================================================================================
     //==================================================================================================================
