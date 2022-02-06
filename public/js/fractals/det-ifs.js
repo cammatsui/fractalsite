@@ -38,9 +38,13 @@ export class DeterministicIFS {
         this.maxIters = this.findMaxIters(transformParameters);
         // Convert the parameterized affine transforms into inverted matrices.
         transformParameters.forEach(t => {
-            this.affineTransformMatrices.push(invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, this.width, this.height)));
+            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, this.width, this.height));
+            for (var i = 0; i < inverted.length; i++) {
+                if (isNaN(inverted[i]))
+                    throw new Error("invalid matrix");
+            }
+            this.affineTransformMatrices.push(inverted);
         });
-        console.log(this.affineTransformMatrices);
     } // constructor ()
     //==================================================================================================================
     //==================================================================================================================

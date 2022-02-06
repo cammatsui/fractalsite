@@ -42,7 +42,6 @@ function getPresetIfs(fractalName: string) {
     presetIfs.every(preset => {
         if (preset.name == fractalName) {
             ifs = preset.ifs;
-            console.log(preset.name);
             return false;
         }
         return true;
@@ -113,22 +112,28 @@ function deleteLastRow() {
 // Create an IFS object from the table to be applied to the canvas.
 function createIFSFromTable(): DeterministicIFS {
     var affineTable: HTMLTableElement = <HTMLTableElement>document.getElementById("affineTable");
-    var affineParams: ParameterizedAffineTransform[] = [];
+    var affineParams: any[] = [];
     var nRows: number = affineTable.rows.length;
     for (var i = 1; i < nRows; i++) {
         var row = affineTable.rows[i];
-        var thisRowParam: ParameterizedAffineTransform = {
-            r:      +row.cells[0].innerHTML,
-            s:      +row.cells[1].innerHTML,
-            thetaD: +row.cells[2].innerHTML,
-            phiD:   +row.cells[3].innerHTML,
-            e:      +row.cells[4].innerHTML,
-            f:      +row.cells[5].innerHTML
+        var thisRowParam = {
+            r:      +row.cells[0].innerText,
+            s:      +row.cells[1].innerText,
+            thetaD: +row.cells[2].innerText,
+            phiD:   +row.cells[3].innerText,
+            e:      +row.cells[4].innerText,
+            f:      +row.cells[5].innerText
         }
         affineParams.push(thisRowParam);
     }
-    var detIFS: DeterministicIFS = new DeterministicIFS(fractalCanvas, affineParams);
-    return detIFS;
+
+
+    try {
+        return new DeterministicIFS(fractalCanvas, affineParams);
+    } catch (error) {
+        alert("Invalid IFS input.");
+        return new DeterministicIFS(fractalCanvas, [{r: 1, s: 1, thetaD: 0, phiD: 0, e: 0, f: 0}]);
+    }
 } // createIFSFromTable ()
 
 

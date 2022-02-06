@@ -33,7 +33,6 @@ function getPresetIfs(fractalName) {
     presetIfs.every(preset => {
         if (preset.name == fractalName) {
             ifs = preset.ifs;
-            console.log(preset.name);
             return false;
         }
         return true;
@@ -99,17 +98,22 @@ function createIFSFromTable() {
     for (var i = 1; i < nRows; i++) {
         var row = affineTable.rows[i];
         var thisRowParam = {
-            r: +row.cells[0].innerHTML,
-            s: +row.cells[1].innerHTML,
-            thetaD: +row.cells[2].innerHTML,
-            phiD: +row.cells[3].innerHTML,
-            e: +row.cells[4].innerHTML,
-            f: +row.cells[5].innerHTML
+            r: +row.cells[0].innerText,
+            s: +row.cells[1].innerText,
+            thetaD: +row.cells[2].innerText,
+            phiD: +row.cells[3].innerText,
+            e: +row.cells[4].innerText,
+            f: +row.cells[5].innerText
         };
         affineParams.push(thisRowParam);
     }
-    var detIFS = new DeterministicIFS(fractalCanvas, affineParams);
-    return detIFS;
+    try {
+        return new DeterministicIFS(fractalCanvas, affineParams);
+    }
+    catch (error) {
+        alert("Invalid IFS input.");
+        return new DeterministicIFS(fractalCanvas, [{ r: 1, s: 1, thetaD: 0, phiD: 0, e: 0, f: 0 }]);
+    }
 } // createIFSFromTable ()
 // Reset the iterated function system.
 function resetIFS() {
