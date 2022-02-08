@@ -49,7 +49,7 @@ function drawGrid() {
 // Reset the MemIFS.
 function resetIFS() {
     warned = false;
-    ifs = new IFSWithMemory(fractalCanvas, [], ifsParamSelector.is2D);
+    ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
     reDraw();
     updateNumIters();
 } // resetIFS ()
@@ -58,7 +58,7 @@ function resetIFS() {
 // Swap the dimension from 2D to 3D (or vice versa) on both the IFS and the parameter canvas.
 function changeDimension() {
     ifsParamSelector.swapDimension();
-    ifs = new IFSWithMemory(fractalCanvas, [], ifsParamSelector.is2D);
+    ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
 } // changeDimension ()
 
 
@@ -146,7 +146,7 @@ const fractalCtx = fractalCanvas.getContext("2d")!;
 
 // Reset canvas and create IFS object.
 reDraw();
-var ifs : IFSWithMemory = new IFSWithMemory(fractalCanvas, allowedTransformations, ifsParamSelector.is2D);
+var ifs : IFSWithMemory = new IFSWithMemory(fractalCanvas, ifsParamSelector);
 
 // Animation stuff
 var intervalID: number = 0;

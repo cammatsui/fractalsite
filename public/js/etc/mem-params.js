@@ -90,17 +90,15 @@ export class MemIFSParamCanvas {
     setCells(value) {
         if (this.is2D) {
             for (var i = 0; i < this.matrix2D.length; i++) {
-                for (var j = 0; j < this.matrix2D[0].length; j++) {
+                for (var j = 0; j < this.matrix2D[0].length; j++)
                     this.matrix2D[i][j] = value;
-                }
             }
         }
         else {
             for (var i = 0; i < this.matrix3D.length; i++) {
                 for (var j = 0; j < this.matrix3D[0].length; j++) {
-                    for (var k = 0; k < this.matrix3D[0][0].length; k++) {
+                    for (var k = 0; k < this.matrix3D[0][0].length; k++)
                         this.matrix3D[i][j][k] = value;
-                    }
                 }
             }
         }
@@ -113,7 +111,6 @@ export class MemIFSParamCanvas {
     drawGrid() {
         this.inc = this.canvas.width / 4;
         this.inc = this.canvas.width / 4;
-        var drawEmpty = true;
         var numCellsSide = 3;
         for (var row = 0; row <= numCellsSide; row++) {
             for (var col = 0; col <= numCellsSide; col++) {
@@ -204,6 +201,7 @@ export class MemIFSParamCanvas {
             this.toggle2DCell(row, col);
         }
         else {
+            // Calculate the 3d cell to activate.
             var cellX = clickX % this.inc - (1 / 12) * this.inc;
             var cellY = clickY % this.inc - (1 / 12) * this.inc;
             if (cellX > (10 / 12) * this.inc || cellY > (10 / 12) * this.inc || cellX < 0 || cellY < 0)
@@ -231,10 +229,9 @@ export class MemIFSParamCanvas {
                     [false, false, false, false, false],
                     [false, false, false, false, true],
                     [false, false, false, true, true]]];
-            for (var i = 0; i < cellCoords.length; i++) {
+            for (var i = 0; i < cellCoords.length; i++)
                 if (cellCoords[i][subRow][subCol])
                     this.toggle3DCell(row, col, i);
-            }
         }
     } // parseClick ()
     //==================================================================================================================
