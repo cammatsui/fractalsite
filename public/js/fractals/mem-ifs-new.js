@@ -44,7 +44,7 @@ export class IFSWithMemory {
                         this.baseDisallowedAddresses.add(address);
                 }
                 else {
-                    for (var k = 0; i < 4; k++) {
+                    for (var k = 0; k < 4; k++) {
                         var address = "" + (i + 1) + "" + (j + 1) + "" + (k + 1);
                         if (this.memParams.matrix3D[i][j][k])
                             this.currentAddresses.push(address);
