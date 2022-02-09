@@ -1,100 +1,45 @@
+
 //======================================================================================================================
 /**
  * @file mem-ifs.ts
  * @author Cameron Matsui (cmatsui22@amherst.edu)
- * @date December 2021.
+ * @date February 2022.
  */
 
 // IMPORTS
-import { createAffineMatrix, invertAffineMatrix, 
-         getTransformedImageData, composeAffineTransforms } from './utils/affine-transform.js';
+import { MemIFSParamCanvas } from "../etc/mem-params.js";
 //======================================================================================================================
 
 
 //======================================================================================================================
-/**
- * An abstract class represnting an iterated function system with memory.
- */
-export abstract class IFSWithMemory {
+export class IFSWithMemory {
 //======================================================================================================================
 
 
     //==================================================================================================================
     // FIELDS
 
-    // The canvas to draw the fractal onto.
+    /* The fractal canvas. */
     readonly canvas: HTMLCanvasElement;
 
-    // The context to draw the fractal with.
+    /* The fractal canvas' context. */
     readonly ctx: CanvasRenderingContext2D;
 
-    // The width of the canvas in pixels.
-    readonly width: number;
-
-    // The height of the canvas in pixels.
-    readonly height: number;
-
-    // The affine transformations T_1, T_2, T_3, and T_4.
-    baseTransformations: number[][];
-    
-    // The composed, inverted transformations to use.
-    transformations: number[][];
-
-    /* The number of iterations that have been performed on this IFS. */
+    /* The number of iterations that have been run on this IFSWithMemory. */
     numIters: number;
 
-    /* The maximum number of iterations before disappearing. */
-    maxIters: number;
+    /* The MemIFSParamCanvas which is the interface for parameters for this IFSWithMemory. */
+    memParams: MemIFSParamCanvas;
 
-    //==================================================================================================================
+    /* The allowed addresses for the current iteration. */
+    currentAddresses: string[];
 
+    /* The base disallowed addresses. */
+    baseDisallowedAddresses: Set<string>;
 
-    //==================================================================================================================
-    /**
-     * Constructor for the IFSWithMemory.
-     * 
-     * @param canvas The canvas to draw the fractal on.
-     */
-    constructor (canvas: HTMLCanvasElement, matrix: any) {
-        this.numIters = 0;
-        this.transformations = [[]];
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d")!;
-        this.width = canvas.width;
-        this.height = canvas.height;
-        this.baseTransformations = [
-            createAffineMatrix(0.5, 0.5, 0, 0, 0, 0, this.width, this.height),
-            createAffineMatrix(0.5, 0.5, 0, 0, 0.5, 0, this.width, this.height),
-            createAffineMatrix(0.5, 0.5, 0, 0, 0, 0.5, this.width, this.height),
-            createAffineMatrix(0.5, 0.5, 0, 0, 0.5, 0.5, this.width, this.height),
-        ];
-        this.transformations = this.getTransformationsFromMatrix(matrix);
-        this.maxIters = this.findMaxIters();
-    } // constructor ()
-    //==================================================================================================================
+    /* Whether an iteration should display a warning. */
+    shouldWarn: boolean;
 
-
-    //==================================================================================================================
-    // ABSTRACT METHODS
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Get the correct transformations matrices.
-     * 
-     * @param matrix The original matrix for allowing/disallowing compositions.
-     * @returns The inverted, correct transformation matrices.
-     */
-    abstract getTransformationsFromMatrix(matrix : any) : number[][];
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Find the minimum scaling factor out of the allowed transforms.
-     */
-    abstract findMinScalingFactor() : number;
     //==================================================================================================================
 
 
@@ -105,185 +50,190 @@ export abstract class IFSWithMemory {
 
     //==================================================================================================================
     /**
-     * Apply an iteration of the transformation.
+     * Constructor for the MemIFS.
+     * 
+     * @param fractalCanvas The canvas to draw the fractal onto.
+     * @param memParams A MemIFSParamCanvas to get the parameters for the IFS.
      */
-    public applyTransform(): void {
+    constructor(fractalCanvas: HTMLCanvasElement, memParams: MemIFSParamCanvas) {
+        this.shouldWarn = false;
+        this.canvas = fractalCanvas;
+        this.ctx = fractalCanvas.getContext("2d")!;
+        this.memParams = memParams;
+        this.numIters = 0;
+        this.currentAddresses = [];
+        this.baseDisallowedAddresses = new Set<string>();
+        this.clearCanvas();
+        this.collectBaseAddresses();
+        this.setCanvas();
+    } // constructor ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Setup the first iteration of current addresses and the disallowed base addresses for this IFS.
+     */
+    private collectBaseAddresses() {
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < 4; j++) {
+                if (this.memParams.is2D) {
+                    var address: string = "" + (i+1) + "" + (j+1);
+                    if (this.memParams.matrix2D[i][j])
+                        this.currentAddresses.push(address);
+                    else
+                        this.baseDisallowedAddresses.add(address);
+                } else {
+                    for (var k = 0; k < 4; k++) {
+                        var address: string = "" + (i+1) + "" + (j+1) + "" + (k+1);
+                        if (this.memParams.matrix3D[i][j][k])
+                            this.currentAddresses.push(address);
+                        else 
+                            this.baseDisallowedAddresses.add(address);
+                    }
+                }
+            }
+        }
+    } // collectBaseAddresses ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Apply an iteration of the IFS.
+     */
+    public applyTransform() {
         this.numIters++;
-        var transformedImageData = getTransformedImageData(this.ctx, this.width, this.height, this.transformations);
-        this.ctx.putImageData(transformedImageData, 0, 0);
+        this.clearCanvas();
+        if (this.numIters == 1) {
+            this.drawCurrentAddresses();
+            return;
+        }
+        this.iterateAddresses();
+        this.drawCurrentAddresses();
     } // applyTransform ()
     //==================================================================================================================
 
 
     //==================================================================================================================
     /**
-     * Find the minimum on the x or y axis of drawn pixels.
-     * 
-     * @returns The minimum dimension.
+     * Setup the canvas with the iteration 0 drawing.
      */
-    private findMinDrawingDimension(): number {
-        var iD = this.ctx.getImageData(0, 0, this.width, this.height);
-        var minX = this.width;
-        var maxX = 0;
-        var minY = this.height;
-        var maxY = 0;
-        for (var x = 0; x < this.width; x++) {
-            for (var y = 0; y < this.height; y++) {
-                if (iD.data[(y*iD.width + x)*4 + 3] != 0) {
-                    if (x < minX) minX = x;
-                    if (x > maxX) maxX = x;
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
+    public setCanvas() {
+        var baseAddresses: string[] = [];
+        for (var i = 1; i <= 4; i++) {
+            if (this.memParams.is2D) {
+                baseAddresses.push(i + "");
+            } else {
+                for (var j = 1; j <= 4; j++) {
+                    baseAddresses.push(i + "" + j);
                 }
             }
         }
-        return Math.min(maxX-minX, maxY-minY);
-    }// findMinDrawingDimension ()
+        baseAddresses.forEach(address => { this.drawAddress(address); })
+    } // setCanvas ()
     //==================================================================================================================
 
 
     //==================================================================================================================
     /**
-     * Calculate the maximum number of iterations for the IFS based on the input image, canvas dimensions,
-     * and minimum scaling factor of the transformations.
-     * 
-     * @param transformParams The transformaton parameters.
-     * @returns The maximum number of iterations.
+     * Set this.currentAddresses to the next iteration's allowed addresses.
      */
-    private findMaxIters(): number {
-        var minDim = this.findMinDrawingDimension();
-        var minScalingFactor = this.findMinScalingFactor();
-        // if square of minDim, how many times can we multiply by minScalingFactor to get to 1?
-        //  i = log_{minScalingFactor}(1/minDim)
-        return Math.floor(Math.log(1/minDim) / Math.log(minScalingFactor))
-    } // findMaxIters ()
+    private iterateAddresses() {
+        var d = this.memParams.is2D ? 2 : 3;
+        var newAddresses: string[] = [];
+        this.currentAddresses.forEach(currentAddress => {
+            for (var i = 1; i <= 4; i++) {
+                var tempAddress = currentAddress + "" + i;
+                if (!this.baseDisallowedAddresses.has(tempAddress.substring(tempAddress.length-d)))
+                    newAddresses.push(tempAddress);
+            }
+        });
+        this.currentAddresses = newAddresses;
+    } // iterateAddresses ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Draw all of the currently allowed addresses.
+     */
+    private drawCurrentAddresses() {
+        this.currentAddresses.forEach(address => { this.drawAddress(address); });
+    } // drawCurrentAddresses ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Draw a square at the given address.
+     * 
+     * @param address The address to draw at.
+     */
+    private drawAddress(address: string) {
+        var tL = { x: 0, y: 0 };
+        var bR = { x: this.canvas.width, y: this.canvas.height };
+        for (var i = 0; i < address.length; i++) {
+            var mid = { x: (tL.x + bR.x) / 2, y: (tL.y + bR.y) / 2 };
+            switch (address.charAt(i)) {
+                case '1':
+                    tL = { x: tL.x , y: mid.y };
+                    bR = { x: mid.x, y: bR.y };
+                    break;
+                case '2':
+                    tL = { x: mid.x, y: mid.y };
+                    bR = { x: bR.x, y: bR.y };
+                    break;
+                case '3':
+                    tL = { x: tL.x, y: tL.y };
+                    bR = { x: mid.x, y: mid.y };
+                    break;
+                case '4':
+                    tL = { x: mid.x, y: tL.y };
+                    bR = { x: bR.x, y: mid.y };
+                    break;
+                default:
+                    break;
+            }
+        }
+        this.drawSquare(tL.x, tL.y, bR.x, bR.y);
+    } // drawAddress ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Draw a square with the given coordinates.
+     * 
+     * @param tx The x coordinate of the top left corner.
+     * @param ty The y coordinate of the top left corner.
+     * @param bx The x coordinate of the bottom right corner.
+     * @param by The y coordinate of the bottom right corner.
+     */
+    private drawSquare(tx: number, ty: number, bx: number, by: number) {
+        if (bx - tx < 1.2) {
+            this.shouldWarn = true;
+        }
+        this.ctx.beginPath();
+        this.ctx.rect(tx, ty, bx-tx, by-ty);
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        this.ctx.fillStyle = "blue";
+        this.ctx.fillRect(tx, ty, bx-tx, by-ty);
+    } // drawSquare ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Clear the fractal canvas. 
+     */
+    private clearCanvas () {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    } // clearCanvas ()
     //==================================================================================================================
 
 
 //======================================================================================================================
 } // class IFSWithMemory
-//======================================================================================================================
-
-
-//======================================================================================================================
-export class IFSWithMemory2D extends IFSWithMemory {
-//======================================================================================================================
-
-
-    //==================================================================================================================
-    // INSTANCE METHODS
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Constructor for the IFSWithMemory2D.
-     * 
-     * @param canvas The canvas to draw the fractal onto.
-     * @param matrix The 2d boolean matrix to allow/disallow composed transformations.
-     */
-    constructor(canvas: HTMLCanvasElement, matrix: boolean[][]) {
-        super(canvas, matrix);
-    } // constructor();
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Get the correct transformations matrices.
-     * 
-     * @param matrix The original matrix for allowing/disallowing compositions.
-     * @returns The inverted, correct transformation matrices.
-     */
-    getTransformationsFromMatrix(matrix: boolean[][]) {
-        var transformations = [];
-        for (var i = 0; i < 4; i++) {
-            for (var j = 0; j < 4; j++) {
-                if (!matrix[i][j]) continue;
-                var composedTransform = composeAffineTransforms([this.baseTransformations[i], 
-                    this.baseTransformations[j]]);
-                var thisTransform = invertAffineMatrix(composedTransform);
-                transformations.push(thisTransform);
-            }
-        }
-        return transformations;
-    } // getTransformationsFromMatrix ()
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Return the minimum scaling factor out of the allowed transforms.
-     */
-    findMinScalingFactor(): number {
-        return 0.25;
-    } // findMinScalingFactor ()
-    //==================================================================================================================
-
-
-//======================================================================================================================
-} // class IFSWithMemory2D
-//======================================================================================================================
-
-
-//======================================================================================================================
-export class IFSWithMemory3D extends IFSWithMemory {
-//======================================================================================================================
-
-
-    //==================================================================================================================
-    // INSTANCE METHODS
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Constructor for the IFSWithMemory3D.
-     * 
-     * @param canvas The canvas to draw the fractal onto.
-     * @param matrix The 3d boolean matrix to allow/disallow composed transformations.
-     */
-    constructor(canvas: HTMLCanvasElement, matrix: boolean[][][]) {
-        super(canvas, matrix);
-    } // constructor();
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Get the correct transformations matrices.
-     * 
-     * @param matrix The original matrix for allowing/disallowing compositions.
-     * @returns The inverted, correct transformation matrices.
-     */
-    getTransformationsFromMatrix(matrix: boolean[][][]) {
-        var transformations = [];
-        for (var i = 0; i < 4; i++) {
-            for (var j = 0; j < 4; j++) {
-                for (var k = 0; k < 4; k++) {
-                    if (!matrix[i][j][k]) continue;
-                    var composedTransform = composeAffineTransforms([this.baseTransformations[i], 
-                        this.baseTransformations[j], this.baseTransformations[k]]);
-                    var thisTransform = invertAffineMatrix(composedTransform);
-                    transformations.push(thisTransform);
-                }
-            }
-        }
-        return transformations;
-    } // getTransformationsFromMatrix ()
-    //==================================================================================================================
-
-
-    //==================================================================================================================
-    /**
-     * Return the min scaling factor out of the allowed transforms.
-     */
-    findMinScalingFactor(): number {
-        return 0.125;
-    } // findMinScalingFactor ()
-    //==================================================================================================================
-
-
-//======================================================================================================================
-} // class IFSWithMemory3D 
 //======================================================================================================================

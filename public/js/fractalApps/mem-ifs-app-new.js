@@ -38,7 +38,6 @@ function drawGrid() {
 function resetIFS() {
     warned = false;
     ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
-    reDraw();
     updateNumIters();
 } // resetIFS ()
 // Swap the dimension from 2D to 3D (or vice versa) on both the IFS and the parameter canvas.
@@ -110,7 +109,6 @@ fractalCanvas.width = maxDimension;
 fractalCanvas.height = maxDimension;
 const fractalCtx = fractalCanvas.getContext("2d");
 // Reset canvas and create IFS object.
-reDraw();
 var ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
 // Animation stuff
 var intervalID = 0;

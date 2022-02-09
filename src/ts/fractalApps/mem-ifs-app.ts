@@ -6,7 +6,7 @@
  */
 
 // IMPORTS
-import { IFSWithMemory, IFSWithMemory2D, IFSWithMemory3D } from '../fractals/mem-ifs.js';
+import { IFSWithMemory } from '../fractals/mem-ifs.js';
 import { MemIFSParamCanvas } from '../etc/mem-params.js';
 //======================================================================================================================
 
@@ -49,33 +49,26 @@ function drawGrid() {
 // Reset the MemIFS.
 function resetIFS() {
     warned = false;
-    if (ifsParamSelector.is2D) ifs = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
-    else ifs = new IFSWithMemory3D(fractalCanvas, ifsParamSelector.matrix3D);
-    reDraw();
+    ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
     updateNumIters();
 } // resetIFS ()
 
 
 // Swap the dimension from 2D to 3D (or vice versa) on both the IFS and the parameter canvas.
 function changeDimension() {
-    if (ifsParamSelector.is2D) {
-        ifs = new IFSWithMemory3D(fractalCanvas, ifsParamSelector.matrix3D);
-        ifsParamSelector.swapDimension();
-    } else {
-        ifs = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
-        ifsParamSelector.swapDimension();
-    }
+    ifsParamSelector.swapDimension();
+    ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
 } // changeDimension ()
 
 
 // Run an iteration of the IFS with memory.
 function runIteration() {
-    if (ifs.numIters > ifs.maxIters && !warned) {
+    if (ifs.shouldWarn && !warned) {
+        if (intervalID != 0) toggleAnimation();
         alert("Warning: maximum recommended iterations reached based on your screen resolution. Proceeding may cause IFS to fade.");
-        stopAnimation();
         warned = true;
     } else {
-        ifs.applyTransform();
+        ifs.applyTransform(); 
         updateNumIters();
     }
 } // runIteration ()
@@ -155,8 +148,7 @@ fractalCanvas.height = maxDimension;
 const fractalCtx = fractalCanvas.getContext("2d")!;
 
 // Reset canvas and create IFS object.
-reDraw();
-var ifs : IFSWithMemory = new IFSWithMemory2D(fractalCanvas, ifsParamSelector.matrix2D);
+var ifs : IFSWithMemory = new IFSWithMemory(fractalCanvas, ifsParamSelector);
 
 // Animation stuff
 var intervalID: number = 0;
