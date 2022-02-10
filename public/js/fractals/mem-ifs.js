@@ -66,11 +66,15 @@ export class IFSWithMemory {
         this.numIters++;
         this.clearCanvas();
         if (this.numIters == 1) {
+            this.drawGrid();
             this.drawCurrentAddresses();
             return;
         }
         this.iterateAddresses();
         this.drawCurrentAddresses();
+        if (this.numIters == 2) {
+            this.drawGrid();
+        }
     } // applyTransform ()
     //==================================================================================================================
     //==================================================================================================================
@@ -151,6 +155,38 @@ export class IFSWithMemory {
         }
         this.drawSquare(tL.x, tL.y, bR.x, bR.y);
     } // drawAddress ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Draw gridlines on the canvas for verifying addresses.
+     */
+    drawGrid() {
+        var d = this.memParams.is2D ? 2 : 3;
+        var numRows = 2 ** (d * this.numIters);
+        var rowWidth = this.canvas.width / numRows;
+        // Vertical bars
+        for (var x = 0; x <= this.canvas.width; x += rowWidth)
+            this.drawLine(x, 0, x, this.canvas.height);
+        // Horizontal bars
+        for (var y = 0; y <= this.canvas.width; y += rowWidth)
+            this.drawLine(0, y, this.canvas.width, y);
+    } // drawGrid ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Draw a line from the coordinates (tx, ty) to (bx, by).
+     *
+     * @param tx The x coordinate of the start point for the line.
+     * @param ty The y coordinate of the start point for the line.
+     * @param bx The x coordinate of the end point for the line.
+     * @param by The y coordinate of the end point for the line.
+     */
+    drawLine(tx, ty, bx, by) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(tx, ty);
+        this.ctx.lineTo(bx, by);
+        this.ctx.stroke();
+    } // drawLine();
     //==================================================================================================================
     //==================================================================================================================
     /**

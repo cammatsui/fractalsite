@@ -47,7 +47,7 @@ export class MemIFSParamCanvas {
         this.ctx.fillStyle = "blue";
         this.is2D = true;
         this.inc = 0;
-        this.inc = 0;
+        this.labelBufferWidth = 0;
         this.initializeCanvas();
     } // constructor ()
     //==================================================================================================================
@@ -109,8 +109,10 @@ export class MemIFSParamCanvas {
      * Draw the grid onto the canvas for the MemIFS.
      */
     drawGrid() {
-        this.inc = this.canvas.width / 4;
-        this.inc = this.canvas.width / 4;
+        /*this.inc = this.canvas.width / 4;
+        this.inc = this.canvas.width / 4; */
+        this.inc = (2 * this.canvas.width) / 9;
+        this.labelBufferWidth = this.canvas.width / 9;
         var numCellsSide = 3;
         for (var row = 0; row <= numCellsSide; row++) {
             for (var col = 0; col <= numCellsSide; col++) {
@@ -120,7 +122,30 @@ export class MemIFSParamCanvas {
                     this.draw3DCells(row, col);
             }
         }
+        this.drawLabels();
     } // draw2DGrid ()
+    //==================================================================================================================
+    //==================================================================================================================
+    drawLabels() {
+        var curX = this.labelBufferWidth + 0.5 * this.inc;
+        var curY = 1 / 2 * this.labelBufferWidth;
+        this.ctx.fillStyle = 'black';
+        // columns
+        for (var i = 1; i <= 4; i++) {
+            this.ctx.font = '24px serif';
+            this.ctx.fillText("" + i, curX - 12, curY + 12);
+            curX += this.inc;
+        }
+        curX = 1 / 2 * this.labelBufferWidth;
+        curY = this.labelBufferWidth + 0.5 * this.inc;
+        // rows
+        for (var i = 1; i <= 4; i++) {
+            this.ctx.font = '24px serif';
+            this.ctx.fillText("" + i, curX - 12, curY + 12);
+            curY += this.inc;
+        }
+        this.ctx.fillStyle = 'blue';
+    } // drawLabels ()
     //==================================================================================================================
     //==================================================================================================================
     /**
@@ -132,7 +157,7 @@ export class MemIFSParamCanvas {
     draw2DCell(row, col) {
         this.clearCell(row, col);
         this.ctx.beginPath();
-        this.ctx.rect(row * this.inc, col * this.inc, this.inc, this.inc);
+        this.ctx.rect(row * this.inc + this.labelBufferWidth, col * this.inc + this.labelBufferWidth, this.inc, this.inc);
         this.ctx.fillStyle = this.matrix2D[col][row] ? "blue" : "white";
         this.ctx.fill();
         this.ctx.stroke();
@@ -149,11 +174,11 @@ export class MemIFSParamCanvas {
         this.clearCell(row, col);
         var inc3D = this.inc * (1 / 6);
         this.ctx.beginPath();
-        this.ctx.rect(row * this.inc, col * this.inc, this.inc, this.inc);
+        this.ctx.rect(row * this.inc + this.labelBufferWidth, col * this.inc + this.labelBufferWidth, this.inc, this.inc);
         this.ctx.stroke();
         for (var i = 3; i >= 0; i--) {
             this.ctx.beginPath();
-            this.ctx.rect(row * this.inc + (i + 0.5) * inc3D, col * this.inc + (i + 0.5) * inc3D, 2 * inc3D, 2 * inc3D);
+            this.ctx.rect(row * this.inc + (i + 0.5) * inc3D + this.labelBufferWidth, col * this.inc + (i + 0.5) * inc3D + this.labelBufferWidth, 2 * inc3D, 2 * inc3D);
             this.ctx.fillStyle = this.matrix3D[col][row][i] ? "blue" : "white";
             this.ctx.fill();
             this.ctx.stroke();
@@ -168,7 +193,7 @@ export class MemIFSParamCanvas {
      * @param col The column of the cell to clear.
      */
     clearCell(row, col) {
-        this.ctx.clearRect(row * this.inc, col * this.inc, this.inc, this.inc);
+        this.ctx.clearRect(row * this.inc + this.labelBufferWidth, col * this.inc + this.labelBufferWidth, this.inc, this.inc);
     } // clearRect ()
     //==================================================================================================================
     //==================================================================================================================
@@ -193,8 +218,10 @@ export class MemIFSParamCanvas {
      */
     parseClick(event) {
         var rect = this.canvas.getBoundingClientRect();
-        var clickX = event.clientX - rect.left;
-        var clickY = event.clientY - rect.top;
+        var clickX = event.clientX - rect.left - this.labelBufferWidth;
+        var clickY = event.clientY - rect.top - this.labelBufferWidth;
+        if (clickX < 0 || clickY < 0)
+            return;
         var row = Math.floor(clickX / this.inc);
         var col = Math.floor(clickY / this.inc);
         if (this.is2D) {
