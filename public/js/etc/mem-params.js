@@ -109,8 +109,6 @@ export class MemIFSParamCanvas {
      * Draw the grid onto the canvas for the MemIFS.
      */
     drawGrid() {
-        /*this.inc = this.canvas.width / 4;
-        this.inc = this.canvas.width / 4; */
         this.inc = (2 * this.canvas.width) / 9;
         this.labelBufferWidth = this.canvas.width / 9;
         var numCellsSide = 3;
@@ -123,16 +121,38 @@ export class MemIFSParamCanvas {
             }
         }
         this.drawLabels();
-    } // draw2DGrid ()
+        if (!this.is2D)
+            this.draw3DLabels();
+    } // drawGrid ()
     //==================================================================================================================
     //==================================================================================================================
+    /**
+     * Draw example depth labels on the cell 4,1.
+     */
+    draw3DLabels() {
+        var inc3D = this.inc * (1 / 6);
+        var curX = this.labelBufferWidth + (2 * inc3D);
+        var curY = this.labelBufferWidth + (3 * this.inc) + (2 * inc3D);
+        this.ctx.fillStyle = 'black';
+        this.ctx.font = '18px sans-serif';
+        for (var i = 1; i <= 4; i++) {
+            this.ctx.fillText("" + i, curX - 9, curY + 9);
+            curX += inc3D;
+            curY += inc3D;
+        }
+    } // draw3DLabels ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Draw row/column labels on the canvas.
+     */
     drawLabels() {
         var curX = this.labelBufferWidth + 0.5 * this.inc;
         var curY = 1 / 2 * this.labelBufferWidth;
         this.ctx.fillStyle = 'black';
         // columns
         for (var i = 1; i <= 4; i++) {
-            this.ctx.font = '24px serif';
+            this.ctx.font = '24px sans-serif';
             this.ctx.fillText("" + i, curX - 12, curY + 12);
             curX += this.inc;
         }
@@ -140,7 +160,7 @@ export class MemIFSParamCanvas {
         curY = this.labelBufferWidth + 0.5 * this.inc;
         // rows
         for (var i = 1; i <= 4; i++) {
-            this.ctx.font = '24px serif';
+            this.ctx.font = '24px sans-serif';
             this.ctx.fillText("" + i, curX - 12, curY + 12);
             curY += this.inc;
         }
@@ -183,6 +203,7 @@ export class MemIFSParamCanvas {
             this.ctx.fill();
             this.ctx.stroke();
         }
+        this.draw3DLabels();
     } // draw3DCells()
     //==================================================================================================================
     //==================================================================================================================

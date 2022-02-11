@@ -50,7 +50,7 @@ function runIteration() {
     if (ifs.shouldWarn && !warned) {
         if (intervalID != 0)
             toggleAnimation();
-        alert("Warning: maximum recommended iterations reached based on your screen resolution. Proceeding may cause IFS to fade.");
+        alert("Warning: maximum recommended iterations reached based on your screen resolution.");
         warned = true;
     }
     else {
