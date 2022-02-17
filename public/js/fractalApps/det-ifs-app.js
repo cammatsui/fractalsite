@@ -66,6 +66,14 @@ function applyPresetIfs(fractalName) {
     // Reset the IFS.
     resetIFS();
 } // applyPresetIfs ()
+// Create IFS table with one blank row.
+function blankIFSTable() {
+    var affineTable = document.getElementById("affineTable");
+    while (affineTable.rows.length > 2) {
+        deleteLastRow();
+    }
+    deleteLastRow();
+} // blankIFSTable ()
 // Redraw the fractal canvas with a blue square.
 function reDraw() {
     ctx.fillStyle = "blue";
@@ -88,8 +96,15 @@ function addRow() {
 function deleteLastRow() {
     var affineTable = document.getElementById("affineTable");
     var nRows = affineTable.rows.length;
-    if (nRows > 2)
+    if (nRows > 2) {
         affineTable.deleteRow(nRows - 1); // make sure that we have at least one ifs row.
+    }
+    else {
+        var row = affineTable.rows[1];
+        for (var i = 0; i < 6; i++) {
+            row.cells[i].innerHTML = "";
+        }
+    }
 } // deleteLastRow ()
 // Create an IFS object from the table to be applied to the canvas.
 function createIFSFromTable() {
@@ -99,13 +114,23 @@ function createIFSFromTable() {
     for (var i = 1; i < nRows; i++) {
         var row = affineTable.rows[i];
         // get the affine parameters for this row of the table, and add them to the IFS.
+        var row2 = [];
+        // Interpret blank as 0
+        for (var j = 0; j < 6; j++) {
+            if (row.cells[j].innerHTML == "0") {
+                row2.push(0);
+            }
+            else {
+                row2.push(+row.cells[j].innerText);
+            }
+        }
         var thisRowParam = {
-            r: +row.cells[0].innerText,
-            s: +row.cells[1].innerText,
-            thetaD: +row.cells[2].innerText,
-            phiD: +row.cells[3].innerText,
-            e: +row.cells[4].innerText,
-            f: +row.cells[5].innerText
+            r: +row2[0],
+            s: +row2[1],
+            thetaD: +row2[2],
+            phiD: +row2[3],
+            e: +row2[4],
+            f: +row2[5]
         };
         affineParams.push(thisRowParam);
     }
@@ -157,7 +182,6 @@ function runIterationFromButton() {
 // Calculate the appropriate cooldown for an IFS iteration.
 function calculateIFSCooldown() {
     var numTransforms = detIFS.affineTransformMatrices.length;
-    console.log(numTransforms);
     var affineDelay = detIFS.AFFINE_DELAY;
     return (numTransforms * affineDelay) * 1.5;
 } // calculateIFSCooldown ()
@@ -245,6 +269,8 @@ clearDrawingButton.onclick = () => drawing.clear();
 var drawingModalOpenButton = document.getElementById("drawingModalOpen");
 drawingModalOpenButton.onclick = activateDrawingCanvas;
 // Fractal Buttons
+var blankTableButton = document.getElementById("blankTable");
+blankTableButton.onclick = blankIFSTable;
 var runIterButton = document.getElementById("runIter");
 runIterButton.onclick = runIterationFromButton;
 var animateButton = document.getElementById("animate");
