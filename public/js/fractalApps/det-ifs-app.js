@@ -89,7 +89,7 @@ function addRow() {
     for (var i = 0; i < 6; i++) {
         var cell = row.insertCell(i);
         cell.contentEditable = "true"; // cell is editable
-        cell.innerHTML = "0"; // default value 0
+        cell.innerHTML = ""; // default value 0
     }
 } // addRow ()
 // Delete the last row of the IFS table.
