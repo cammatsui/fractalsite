@@ -162,7 +162,7 @@ export class IFSWithMemory {
      */
     drawGrid() {
         var d = this.memParams.is2D ? 2 : 3;
-        var numRows = 2 ** (d * this.numIters);
+        var numRows = 2 ** ((d - 1) * this.numIters);
         var rowWidth = this.canvas.width / numRows;
         // Vertical bars
         for (var x = 0; x <= this.canvas.width; x += rowWidth)

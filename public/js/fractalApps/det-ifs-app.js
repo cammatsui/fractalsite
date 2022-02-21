@@ -88,8 +88,9 @@ function addRow() {
     var row = affineTable.insertRow(nRows);
     for (var i = 0; i < 6; i++) {
         var cell = row.insertCell(i);
+        cell.style.height = "" + affineTable.rows[0].offsetHeight;
         cell.contentEditable = "true"; // cell is editable
-        cell.innerHTML = ""; // default value 0
+        cell.innerHTML = "0"; // default value 0
     }
 } // addRow ()
 // Delete the last row of the IFS table.
@@ -102,10 +103,21 @@ function deleteLastRow() {
     else {
         var row = affineTable.rows[1];
         for (var i = 0; i < 6; i++) {
-            row.cells[i].innerHTML = "";
+            row.cells[i].innerHTML = "0";
         }
     }
 } // deleteLastRow ()
+// Turn a table entry in the IFS table into a number.
+function parseTableEntry(html) {
+    if (html.includes("/")) {
+        // fraction
+        var frac = html.replace(/\s/g, "").split('/');
+        return (+frac[0]) / (+frac[1]);
+    }
+    else {
+        return (+html.replace(/\s/g, ""));
+    }
+} // parseTableEntry ()
 // Create an IFS object from the table to be applied to the canvas.
 function createIFSFromTable() {
     var affineTable = document.getElementById("affineTable");
@@ -118,19 +130,19 @@ function createIFSFromTable() {
         // Interpret blank as 0
         for (var j = 0; j < 6; j++) {
             if (row.cells[j].innerHTML == "0") {
-                row2.push(0);
+                row2.push("0");
             }
             else {
-                row2.push(+row.cells[j].innerText);
+                row2.push(row.cells[j].innerText);
             }
         }
         var thisRowParam = {
-            r: +row2[0],
-            s: +row2[1],
-            thetaD: +row2[2],
-            phiD: +row2[3],
-            e: +row2[4],
-            f: +row2[5]
+            r: parseTableEntry(row2[0]),
+            s: parseTableEntry(row2[1]),
+            thetaD: parseTableEntry(row2[2]),
+            phiD: parseTableEntry(row2[3]),
+            e: parseTableEntry(row2[4]),
+            f: parseTableEntry(row2[5])
         };
         affineParams.push(thisRowParam);
     }

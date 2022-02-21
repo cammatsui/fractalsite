@@ -26,9 +26,9 @@ export function toRadians(angleDegs) {
  * @returns A number[]: [a, b, c, d, e, f]
  */
 export function createAffineMatrix(r, s, thetaD, phiD, e, f, width, height) {
-    var theta = toRadians(thetaD);
-    var phi = toRadians(phiD);
-    return [r * Math.cos(theta), -s * Math.sin(phi), r * Math.sin(theta), s * Math.cos(phi), e * width, f * height];
+    //var theta = toRadians(thetaD);
+    //var phi = toRadians(phiD);
+    return [r * Math.cos(thetaD), -s * Math.sin(phiD), r * Math.sin(thetaD), s * Math.cos(phiD), e * width, f * height];
 } // createAffineMatrix ()
 //======================================================================================================================
 //======================================================================================================================

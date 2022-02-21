@@ -51,16 +51,16 @@ export const presetIfs = [
             {
                 "r": 0.333333,
                 "s": 0.333333,
-                "thetaD": 60,
-                "phiD": 60,
+                "thetaD": Math.PI/3,
+                "phiD": Math.PI/3,
                 "e": 0.333333,
                 "f": 0
             },
             {
                 "r": 0.333333,
                 "s": 0.333333,
-                "thetaD": -60,
-                "phiD": -60,
+                "thetaD": -Math.PI/3,
+                "phiD": -Math.PI/3,
                 "e": 0.5,
                 "f": .289
             },
