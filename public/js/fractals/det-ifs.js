@@ -13,7 +13,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { createAffineMatrix, invertAffineMatrix, getTransformedImageDataAnimated, combineImageDatas } from './utils/affine-transform.js';
+import { createAffineMatrix, invertAffineMatrix, combineImageDatas, getTransformedImageDataAnimatedWindow } from './utils/affine-transform.js';
 //======================================================================================================================
 //======================================================================================================================
 /**
@@ -40,7 +40,7 @@ export class DeterministicIFS {
         transformParameters.forEach(t => {
             // Invert the matrix, and check if it is valid (invertible and numbers will return a valid matrix).
             //  If not, throw an error.
-            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.thetaD, t.phiD, t.e, t.f, this.canvas.width, this.canvas.height));
+            var inverted = invertAffineMatrix(createAffineMatrix(t.r, t.s, t.theta, t.phi, t.e, t.f, this.canvas.width, this.canvas.height));
             for (var i = 0; i < inverted.length; i++) {
                 if (isNaN(inverted[i]))
                     throw new Error("Invalid affine transform.");
@@ -65,7 +65,9 @@ export class DeterministicIFS {
             var ids = [];
             for (var i = 0; i < this.affineTransformMatrices.length; i++) {
                 // Get the result of applying the ith transform to the previous iteration.
-                var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height, this.affineTransformMatrices, i, oldID);
+                //var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height,
+                //    this.affineTransformMatrices, i, oldID);
+                var transformed = getTransformedImageDataAnimatedWindow(this.ctx, this.canvas.width, this.canvas.height, this.affineTransformMatrices, i, oldID, -1, 1);
                 // Combine the previous animation frame and the transformed image data.
                 curID = combineImageDatas(curID, transformed, this.canvas);
                 // Copy the new animation frame and store it.
@@ -132,7 +134,7 @@ export class DeterministicIFS {
         return Math.floor(Math.log(1 / minDim) / Math.log(minScalingFactor));
     } // findMaxIters ()
     //==================================================================================================================
-    //==================================================================================================================
+    //=================================================================================================================
     // STATIC METHODS
     //==================================================================================================================
     //==================================================================================================================

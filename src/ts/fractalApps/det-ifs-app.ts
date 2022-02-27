@@ -71,8 +71,8 @@ function applyPresetIfs(fractalName: string) {
     for (var i = 1, row; row = affineTable.rows[i]; i++) {
         row.cells[0].innerHTML = ""+ifs[i-1].r;
         row.cells[1].innerHTML = ""+ifs[i-1].s;
-        row.cells[2].innerHTML = ""+ifs[i-1].thetaD;
-        row.cells[3].innerHTML = ""+ifs[i-1].phiD;
+        row.cells[2].innerHTML = ""+ifs[i-1].theta;
+        row.cells[3].innerHTML = ""+ifs[i-1].phi;
         row.cells[4].innerHTML = ""+ifs[i-1].e;
         row.cells[5].innerHTML = ""+ifs[i-1].f;
     }
@@ -97,6 +97,7 @@ function reDraw() {
     ctx.fillStyle = "blue"
     ctx.putImageData(ctx.createImageData(fractalCanvas.width, fractalCanvas.height), 0, 0);
     ctx.rect(-100, -100, fractalCanvas.width+100, fractalCanvas.height+100);
+    //ctx.rect(fractalCanvas.width/2, 0, fractalCanvas.width+100, fractalCanvas.height/2);
     ctx.fill();
 }
 
@@ -153,18 +154,18 @@ function createIFSFromTable(): DeterministicIFS {
         // Interpret blank as 0
         for (var j = 0; j < 6; j++) {
             if (row.cells[j].innerHTML == "0") {
-                row2.push("0");
+                row2.push(0);
             } else {
-                row2.push(row.cells[j].innerText);
+                row2.push(parseTableEntry(row.cells[j].innerText));
             }
         }
         var thisRowParam = {
-            r:          parseTableEntry(row2[0]),
-            s:          parseTableEntry(row2[1]),
-            thetaD:     parseTableEntry(row2[2]),
-            phiD:       parseTableEntry(row2[3]),
-            e:          parseTableEntry(row2[4]),
-            f:          parseTableEntry(row2[5])
+            r:          row2[0],
+            s:          row2[1],
+            theta:      row2[2],
+            phi:        row2[3],
+            e:          row2[4],
+            f:          row2[5]
         }
         affineParams.push(thisRowParam);
     }
@@ -174,7 +175,7 @@ function createIFSFromTable(): DeterministicIFS {
         return new DeterministicIFS(fractalCanvas, affineParams);
     } catch (error) {
         alert("Invalid IFS input.");
-        return new DeterministicIFS(fractalCanvas, [{r: 1, s: 1, thetaD: 0, phiD: 0, e: 0, f: 0}]);
+        return new DeterministicIFS(fractalCanvas, [{r: 1, s: 1, theta: 0, phi: 0, e: 0, f: 0}]);
     }
 } // createIFSFromTable ()
 

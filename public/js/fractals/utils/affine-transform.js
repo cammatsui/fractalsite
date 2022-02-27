@@ -9,26 +9,13 @@
 //======================================================================================================================
 //======================================================================================================================
 /**
- * Convert an angle in degrees to an angle in radians.
- *
- * @param angleDegs The degree measurement of the angle.
- * @returns The radian measurement of the angle.
- */
-export function toRadians(angleDegs) {
-    return angleDegs * (Math.PI / 180);
-} // toRadians ()
-//======================================================================================================================
-//======================================================================================================================
-/**
  * Create a "matrix" representing a parameterized affine transformation.
  *
  * @params See documentation.
  * @returns A number[]: [a, b, c, d, e, f]
  */
-export function createAffineMatrix(r, s, thetaD, phiD, e, f, width, height) {
-    //var theta = toRadians(thetaD);
-    //var phi = toRadians(phiD);
-    return [r * Math.cos(thetaD), -s * Math.sin(phiD), r * Math.sin(thetaD), s * Math.cos(phiD), e * width, f * height];
+export function createAffineMatrix(r, s, theta, phi, e, f, width, height) {
+    return [r * Math.cos(theta), -s * Math.sin(phi), r * Math.sin(theta), s * Math.cos(phi), e * width, f * height];
 } // createAffineMatrix ()
 //======================================================================================================================
 //======================================================================================================================
@@ -67,8 +54,8 @@ export function invertAffineMatrix(affineMatrix) {
 /**
  * Convert the Coordinate c such that the origin is in the bottom left of the canvas.
  *
- * @param c         The Coordinate to convert.
- * @param height    The height of the canvas.
+ * @param c The Coordinate to convert.
+ * @param height The height of the canvas.
  */
 export function convertCoord(c, height) {
     c.y = height - c.y;
@@ -131,6 +118,46 @@ export function getTransformedImageData(ctx, width, height, affineTransformMatri
                     }
                 }
             });
+        }
+    }
+    return iD;
+} // getTransformedImageData ()
+//======================================================================================================================
+//======================================================================================================================
+function windowTransform(x, y, a, b, height) {
+    return {
+        x: (height * (x - a)) / (b - a),
+        y: (height * (y - a)) / (b - a)
+    };
+} // windowTransform ()
+//======================================================================================================================
+//======================================================================================================================
+/**
+ * Get an ImageData object representing the next iteration of the IFS based on the provided affine
+ * transformation. To do this, we look at each pixel in the *output* ImageData, apply each of the inverse
+ * transformations, and see if there is a non-transparent pixel for any of them. If so, we set the output
+ * pixel to one of the colors.
+ *
+ * @param ctx       The canvas context.
+ * @param width     The canvas width.
+ * @param height    The canvas height.
+ * @param affineTransformMatrices  Affine transform matrices representing the IFS.
+ * @returns The ImageData transformed according to the IFS.
+ */
+export function getTransformedImageDataAnimatedWindow(ctx, width, height, affineTransformMatrices, transformIdx, oldID, a, b) {
+    var iD = ctx.createImageData(width, height);
+    for (var x = 0; x <= width; x++) {
+        for (var y = 0; y <= height; y++) {
+            var coordTo = { x: x, y: y };
+            var matrix = affineTransformMatrices[transformIdx];
+            convertCoord(coordTo, height);
+            var coordFromPrime = applyAffineMatrix(matrix, windowTransform(coordTo.x, coordTo.y, a, b, height));
+            convertCoord(coordFromPrime, height);
+            if (coordFromPrime.x >= 0 && coordFromPrime.x < width && coordFromPrime.y >= 0 && coordFromPrime.y < height) {
+                if (getAlpha(oldID, coordFromPrime) > 0 || getAlpha(iD, coordTo) == 0) {
+                    copyPixel(oldID, coordFromPrime, iD, coordTo, width);
+                }
+            }
         }
     }
     return iD;

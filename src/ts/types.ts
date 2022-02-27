@@ -30,8 +30,16 @@ export type Coordinate = {
 export type ParameterizedAffineTransform = {
     r: number;
     s: number;
-    thetaD: number; // in degrees
-    phiD: number; // also in degrees
+    theta: number;
+    phi: number;
+    e: number;
+    f: number;
+}
+
+
+// A type representing the parameters of an affine transform.
+export type ParameterizedContractionMap = {
+    r: number;
     e: number;
     f: number;
 }
