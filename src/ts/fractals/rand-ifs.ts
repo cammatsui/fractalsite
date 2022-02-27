@@ -12,6 +12,11 @@ import { ParameterizedContractionMap, Coordinate } from "../types";
 
 
 //======================================================================================================================
+/**
+ * A class representing a Random Iterated Function System.
+ * The class finds a fixed point of one of the IFS contraction maps, and
+ * repeatedly applies a random IFS contraction map to that point.
+ */
 export class RandomIFS {
 //======================================================================================================================
 
@@ -67,7 +72,6 @@ export class RandomIFS {
         this.numIters++;
         for (var i = 0; i < this.numPoints; i++) {
             this.drawCurrentPoint();
-            //console.log(this.currentPoint);
             this.updateCurrentPoint();
         }
     } // iterate ()
@@ -125,7 +129,6 @@ export class RandomIFS {
         this.ctx.fillStyle = "black"
         this.ctx.fillRect(
             Math.floor(this.currentPoint.x * this.canvas.width),
-            //Math.floor(this.currentPoint.y * this.canvas.height), 10,10);
             Math.floor(this.canvas.height - (this.currentPoint.y * this.canvas.height)), 2,2);
     } // drawCurrentPoint ()
     //==================================================================================================================
