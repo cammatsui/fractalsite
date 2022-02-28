@@ -79,8 +79,8 @@ function reDraw() {
     ctx.fillStyle = "blue";
     ctx.putImageData(ctx.createImageData(fractalCanvas.width, fractalCanvas.height), 0, 0);
     ctx.rect(-100, -100, fractalCanvas.width + 100, fractalCanvas.height + 100);
-    //ctx.rect(fractalCanvas.width/2, 0, fractalCanvas.width+100, fractalCanvas.height/2);
     ctx.fill();
+    //detIFS.drawGrid();
 }
 // Add a new row to the bottom of the IFS table.
 function addRow() {
@@ -149,11 +149,11 @@ function createIFSFromTable() {
     }
     // Make sure that IFS is valid (matrices invertible, numbers).
     try {
-        return new DeterministicIFS(fractalCanvas, affineParams);
+        return new DeterministicIFS(fractalCanvas, affineParams, 0, 1);
     }
     catch (error) {
         alert("Invalid IFS input.");
-        return new DeterministicIFS(fractalCanvas, [{ r: 1, s: 1, theta: 0, phi: 0, e: 0, f: 0 }]);
+        return new DeterministicIFS(fractalCanvas, [{ r: 1, s: 1, theta: 0, phi: 0, e: 0, f: 0 }], 0, 1);
     }
 } // createIFSFromTable ()
 // Reset the iterated function system.

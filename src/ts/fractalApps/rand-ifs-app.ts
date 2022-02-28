@@ -39,13 +39,15 @@ function createIFSFromTable(): RandomIFS {
         }
         affineParams.push(thisRowParam);
     }
+    var pointsSlider = <HTMLInputElement>document.getElementById("dotsRange")!;
+    var numPoints = +pointsSlider.value;
 
     // Make sure that IFS is valid (matrices invertible, numbers).
     try {
-        return new RandomIFS(fractalCanvas, affineParams);
+        return new RandomIFS(fractalCanvas, affineParams, numPoints);
     } catch (error) {
         alert("Invalid IFS input.");
-        return new RandomIFS(fractalCanvas, [{r: 1, e: 0, f: 0}]);
+        return new RandomIFS(fractalCanvas, [{r: 1, e: 0, f: 0}], numPoints);
     }
 } // createIFSFromTable ()
 
@@ -147,7 +149,7 @@ function toggleAnimation() {
         // Animation is stopped => start the animation.
         animateButton.innerHTML = "Stop Animation";
         //startAnimation(calculateIFSCooldown());
-        startAnimation(300);
+        startAnimation(600);
         iterationEnabled = false;
     }
 } // toggleAnimation ()

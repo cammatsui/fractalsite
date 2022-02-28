@@ -41,6 +41,11 @@ export class DeterministicIFS {
     /* The delay (in ms) between applying each affine transform in animation. */
     readonly AFFINE_DELAY = 220;
 
+    /* The left side of the window. */
+    readonly a: number;
+
+    /* The right sdide of the window. */
+    readonly b: number;
     //==================================================================================================================
 
 
@@ -53,11 +58,13 @@ export class DeterministicIFS {
     /**
      * The constructor for the DeterministicIFS.
      */
-    constructor(canvas: HTMLCanvasElement, transformParameters: ParameterizedAffineTransform[]) {
+    constructor(canvas: HTMLCanvasElement, transformParameters: ParameterizedAffineTransform[], a: number, b: number) {
+        this.a = a;
+        this.b = b;
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
         this.numIters = 0;
-        this.affineTransformMatrices = []
+        this.affineTransformMatrices = [];
         this.maxIters = this.findMaxIters(transformParameters)-1;
 
         // Convert the parameterized affine transforms into inverted matrices.
@@ -72,6 +79,32 @@ export class DeterministicIFS {
             this.affineTransformMatrices.push(inverted);
         })
     } // constructor ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /*public drawGrid() {
+        var c = (-1*this.a)/(this.b-this.a)*this.canvas.height;
+        this.drawLine(0, this.canvas.height-c, this.canvas.height, this.canvas.height-c);
+        console.log(c);
+        this.drawLine(c, 0, c, this.canvas.height);
+    } // drawGrid ()*/
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Draw a line between the points (x0, y0) and (x1, y1).
+     */
+    drawLine(x0: number, y0: number, x1: number, y1: number) {
+        this.ctx.strokeStyle = "black";
+        this.ctx.lineWidth = 5;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(x0, y0);
+        this.ctx.lineTo(x1, y1);
+        this.ctx.stroke();
+    } // drawLine ()
     //==================================================================================================================
 
 
@@ -95,7 +128,7 @@ export class DeterministicIFS {
             //var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height,
             //    this.affineTransformMatrices, i, oldID);
             var transformed = getTransformedImageDataAnimatedWindow(this.ctx, this.canvas.width, this.canvas.height,
-                this.affineTransformMatrices, i, oldID, -1, 1);
+                this.affineTransformMatrices, i, oldID, this.a, this.b);
             // Combine the previous animation frame and the transformed image data.
             curID = combineImageDatas(curID, transformed, this.canvas);
             // Copy the new animation frame and store it.

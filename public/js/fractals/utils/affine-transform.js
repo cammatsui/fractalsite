@@ -125,9 +125,14 @@ export function getTransformedImageData(ctx, width, height, affineTransformMatri
 //======================================================================================================================
 //======================================================================================================================
 function windowTransform(x, y, a, b, height) {
+    var c = height * (-a) / (b - a);
     return {
-        x: (height * (x - a)) / (b - a),
-        y: (height * (y - a)) / (b - a)
+        x: x - c,
+        y: y - c
+        //height*(-a)/(b-a),
+        //y:  height*(-a)/(b-a)
+        //x : (height*(x-a))/(b-a),
+        //y : (height*(y-a))/(b-a)
     };
 } // windowTransform ()
 //======================================================================================================================
@@ -148,10 +153,9 @@ export function getTransformedImageDataAnimatedWindow(ctx, width, height, affine
     var iD = ctx.createImageData(width, height);
     for (var x = 0; x <= width; x++) {
         for (var y = 0; y <= height; y++) {
-            var coordTo = { x: x, y: y };
+            var coordTo = { x: x, y: height - y };
             var matrix = affineTransformMatrices[transformIdx];
-            convertCoord(coordTo, height);
-            var coordFromPrime = applyAffineMatrix(matrix, windowTransform(coordTo.x, coordTo.y, a, b, height));
+            var coordFromPrime = applyAffineMatrix(matrix, windowTransform(coordTo.x, height - coordTo.y, a, b, height));
             convertCoord(coordFromPrime, height);
             if (coordFromPrime.x >= 0 && coordFromPrime.x < width && coordFromPrime.y >= 0 && coordFromPrime.y < height) {
                 if (getAlpha(oldID, coordFromPrime) > 0 || getAlpha(iD, coordTo) == 0) {

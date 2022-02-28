@@ -53,10 +53,10 @@ export class RandomIFS {
     /**
      * The constructor for the RandomIFS. 
      */
-    constructor(canvas: HTMLCanvasElement, contractionMaps: ParameterizedContractionMap[]) {
+    constructor(canvas: HTMLCanvasElement, contractionMaps: ParameterizedContractionMap[], numPoints: number) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
-        this.numPoints = 100;
+        this.numPoints = numPoints;
         this.contractionMaps = contractionMaps;
         this.numIters = 0;
         this.currentPoint = this.findFixedPoint();
