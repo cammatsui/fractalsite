@@ -161,7 +161,6 @@ export class IFSWithMemory {
      * Draw gridlines on the canvas for verifying addresses.
      */
     drawGrid() {
-        var d = this.memParams.is2D ? 2 : 3;
         var toAdd = this.memParams.is2D ? 1 : 2;
         var numRows = 2 ** (this.numIters + toAdd);
         var rowWidth = this.canvas.width / numRows;

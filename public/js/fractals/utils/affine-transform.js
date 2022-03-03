@@ -15,7 +15,9 @@
  * @returns A number[]: [a, b, c, d, e, f]
  */
 export function createAffineMatrix(r, s, theta, phi, e, f, width, height) {
-    return [r * Math.cos(theta), -s * Math.sin(phi), r * Math.sin(theta), s * Math.cos(phi), e * width, f * height];
+    var phiRad = phi * (Math.PI / 180);
+    var thetaRad = phi * (Math.PI / 180);
+    return [r * Math.cos(thetaRad), -s * Math.sin(phiRad), r * Math.sin(thetaRad), s * Math.cos(phiRad), e * width, f * height];
 } // createAffineMatrix ()
 //======================================================================================================================
 //======================================================================================================================
@@ -129,10 +131,6 @@ function windowTransform(x, y, a, b, height) {
     return {
         x: x - c,
         y: y - c
-        //height*(-a)/(b-a),
-        //y:  height*(-a)/(b-a)
-        //x : (height*(x-a))/(b-a),
-        //y : (height*(y-a))/(b-a)
     };
 } // windowTransform ()
 //======================================================================================================================

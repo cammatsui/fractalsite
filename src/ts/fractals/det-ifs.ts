@@ -83,16 +83,6 @@ export class DeterministicIFS {
 
 
     //==================================================================================================================
-    /*public drawGrid() {
-        var c = (-1*this.a)/(this.b-this.a)*this.canvas.height;
-        this.drawLine(0, this.canvas.height-c, this.canvas.height, this.canvas.height-c);
-        console.log(c);
-        this.drawLine(c, 0, c, this.canvas.height);
-    } // drawGrid ()*/
-    //==================================================================================================================
-
-
-    //==================================================================================================================
     /**
      * Draw a line between the points (x0, y0) and (x1, y1).
      */
@@ -125,8 +115,6 @@ export class DeterministicIFS {
 
         for (var i = 0; i < this.affineTransformMatrices.length; i++) {
             // Get the result of applying the ith transform to the previous iteration.
-            //var transformed = getTransformedImageDataAnimated(this.ctx, this.canvas.width, this.canvas.height,
-            //    this.affineTransformMatrices, i, oldID);
             var transformed = getTransformedImageDataAnimatedWindow(this.ctx, this.canvas.width, this.canvas.height,
                 this.affineTransformMatrices, i, oldID, this.a, this.b);
             // Combine the previous animation frame and the transformed image data.

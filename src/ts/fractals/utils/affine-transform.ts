@@ -21,7 +21,9 @@ import { Coordinate, ParameterizedAffineTransform } from '../../types.js';
  */
 export function createAffineMatrix(r: number, s: number, theta: number, phi: number, e: number, f: number, 
         width: number, height: number): number[] {
-    return [r*Math.cos(theta), -s*Math.sin(phi), r*Math.sin(theta), s*Math.cos(phi), e*width, f*height];
+    var phiRad = phi * (Math.PI / 180); 
+    var thetaRad = phi * (Math.PI / 180);
+    return [r*Math.cos(thetaRad), -s*Math.sin(phiRad), r*Math.sin(thetaRad), s*Math.cos(phiRad), e*width, f*height];
 } // createAffineMatrix ()
 //======================================================================================================================
 
@@ -149,10 +151,6 @@ function windowTransform(x: number, y: number, a: number, b: number, height: num
     return { 
         x: x-c,
         y: y-c
-        //height*(-a)/(b-a),
-        //y:  height*(-a)/(b-a)
-        //x : (height*(x-a))/(b-a),
-        //y : (height*(y-a))/(b-a)
     };
 } // windowTransform ()
 //======================================================================================================================
