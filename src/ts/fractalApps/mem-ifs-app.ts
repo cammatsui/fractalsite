@@ -7,182 +7,150 @@
 
 // IMPORTS
 import { IFSWithMemory } from '../fractals/mem-ifs.js';
-import { MemIFSParamCanvas } from '../etc/mem-params.js';
+import { MemIFSParamCanvas } from './interfaces/mem-params.js';
+import { Animator } from '../etc/animation.js';
 //======================================================================================================================
 
 
 //======================================================================================================================
-// FUNCTIONS
+// SETUP
 //======================================================================================================================
 
-// Resize the parameter canvas when the modal is opened.
-function resizeParamCanvas() {
-    const paramModal = <HTMLDivElement>document.getElementById("ifsModalBody");
-    var paramCanvasMaxDimension = Math.min(maxDimension *.8, paramModal.offsetWidth);
-    paramCanvas.width = paramCanvasMaxDimension;
-    paramCanvas.height = paramCanvasMaxDimension;
-} // resizeParamCanvas ()
-
-
-// Reset the fractal canvas.
-function reDraw() {
-    fractalCtx.fillStyle = "blue"
-    fractalCtx.putImageData(fractalCtx.createImageData(fractalCanvas.width, fractalCanvas.height), 0, 0);
-    fractalCtx.rect(-100, -100, fractalCanvas.width+100, fractalCanvas.height+100);
-    fractalCtx.fill();
-} // reDraw ()
-
-
-// Change the parameter canvas when the modal is opened.
-function activateParamCanvas() {
-    setTimeout(resizeParamCanvas, 250);
-    setTimeout(drawGrid, 290);
-} // activateParamCanvas ()
-
-
-// Draw the grid on the parameter canvas.
-function drawGrid() {
-    ifsParamSelector.drawGrid();
-} // drawGrid ()
-
-
-// Reset the MemIFS.
-function resetIFS() {
-    warned = false;
-    ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
-    updateNumIters();
-} // resetIFS ()
-
-
-// Swap the dimension from 2D to 3D (or vice versa) on both the IFS and the parameter canvas.
-function changeDimension() {
-    ifsParamSelector.swapDimension();
-    ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
-} // changeDimension ()
-
-
-// Run an iteration of the IFS with memory.
-function runIteration() {
-    if (ifs.shouldWarn && !warned) {
-        if (intervalID != 0) toggleAnimation();
-        alert("Warning: maximum recommended iterations reached based on your screen resolution.");
-        warned = true;
-    } else {
-        ifs.applyTransform(); 
-        updateNumIters();
-    }
-} // runIteration ()
-
-
-// Run an iteration after checking if iteration is enabled.
-function runIterationFromButton() {
-    if (!iterationEnabled || intervalID != 0) return;
-    runIteration();
-    iterationEnabled = false;
-    setTimeout( () => { iterationEnabled  = true }, 500);
-} // runIterationFromButton();
-
-
-// Update the number of iterations displayed.
-function updateNumIters() {
-    var numItersP = document.getElementById("numIters")!;
-    numItersP.innerHTML = "Iterations: " + ifs.numIters;
-} // updateNumIters ()
-
-
-// Start the animation.
-function startAnimation(ms: number) {
-    intervalID = setInterval( () => { runIteration() }, ms );
-} // startAnimation ()
-
-
-// Stop the animation.
-function stopAnimation() {
-    clearInterval(intervalID);
-    intervalID = 0;
-} // stopAnimation ()
-
-
-// Toggle animation on/off.
-function toggleAnimation() {
-    // animation running
-    if (intervalID != 0) {
-        animateButton.innerHTML = "Start Animation";
-        stopAnimation();
-        iterationEnabled = true;
-    } else {
-    // animation stopped
-        animateButton.innerHTML = "Stop Animation";
-        startAnimation(1000);
-        iterationEnabled = false;
-    }
-} // toggleAnimation ()
-
-
-// Clear all cells in the parameter selector.
-function clearCells() {
-    ifsParamSelector.clearCells();
-} // clearCells ()
-
-
-// Fill all cells in the parameter selector.
-function fillCells() {
-    ifsParamSelector.fillCells();
-} // fillCells ()
-
-//======================================================================================================================
-// INITIALIZATION
-//======================================================================================================================
-
+// Calculate the max dimension for the fractal canvas.
 const maxDimension = Math.floor(Math.min(window.innerWidth*.85, window.innerHeight*.85));
 
-// Parameter Canvas
+// Get the canvas for the MemIFS parameters, and set up the MemIFSParamCanvas object.
 const paramCanvas = <HTMLCanvasElement>document.getElementById('parameter-canvas');
-var ifsParamSelector = new MemIFSParamCanvas(paramCanvas);
+let ifsParamSelector = new MemIFSParamCanvas(paramCanvas);
 
-// Fractal Canvas
+// Setup the fractal canvas.
 const fractalCanvas = <HTMLCanvasElement>document.getElementById('fractal-canvas');
 fractalCanvas.width = maxDimension;
 fractalCanvas.height = maxDimension;
 
-const fractalCtx = fractalCanvas.getContext("2d")!;
-
 // Reset canvas and create IFS object.
-var ifs : IFSWithMemory = new IFSWithMemory(fractalCanvas, ifsParamSelector);
+let ifs : IFSWithMemory = new IFSWithMemory(fractalCanvas, ifsParamSelector);
 
-// Animation stuff
-var intervalID: number = 0;
+// Set up the animation.
+let iterationsHTML: HTMLElement = document.getElementById("numIters")!;
+let animateButton = <HTMLButtonElement>document.getElementById("animate")!;
 
-// For warning
-var warned = false;
+let warning = "Warning: maximum recommended iterations reached based on your screen resolution.";
+let animator = new Animator(ifs, animateButton, warning, iterationsHTML);
+    
+// Get the parameter modal.
+const paramModal = <HTMLDivElement>document.getElementById("ifsModalBody");
 
-// To stop iteration button.
-var iterationEnabled = true;
+//======================================================================================================================
+// END SETUP
+//======================================================================================================================
+
+
+//======================================================================================================================
+// BUTTON FUNCTIONS & HELPERS
+//======================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Resize the parameter canvas. For use in activateParamCanvas() when the modal is opened.
+     */
+    function resizeParamCanvas() {
+        var paramCanvasMaxDimension = Math.min(maxDimension *.8, paramModal.offsetWidth);
+        paramCanvas.width = paramCanvasMaxDimension;
+        paramCanvas.height = paramCanvasMaxDimension;
+    } // resizeParamCanvas ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Activate the parameter canvas (resize and draw the grid) when the modal is opened.
+     */
+    function activateParamCanvas() {
+        setTimeout(resizeParamCanvas, 250);
+        setTimeout(drawGrid, 290);
+    } // activateParamCanvas ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Draw the grid on the parameter canvas to mark cells.
+     */
+    function drawGrid() {
+        ifsParamSelector.drawGrid();
+    } // drawGrid ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Reset the IFS. Resets both the ifs itself as well as the canvas and animator.
+     */
+    function resetIFS() {
+        ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
+        animator = new Animator(ifs, animateButton, warning, iterationsHTML);
+    } // resetIFS ()
+    //==================================================================================================================
+
+
+    //==================================================================================================================
+    /**
+     * Swap the dimension from 2D to 3D (or vice versa) on both the IFS and the parameter canvas.
+     */
+    function changeDimension() {
+        ifsParamSelector.swapDimension();
+        ifs = new IFSWithMemory(fractalCanvas, ifsParamSelector);
+    } // changeDimension ()
+    //==================================================================================================================
+
+
+//======================================================================================================================
+// END BUTTON FUNCTIONS & HELPERS
+//======================================================================================================================
+
 
 //======================================================================================================================
 // BUTTON SETUP
 //======================================================================================================================
 
-var runIterButton = document.getElementById("runIter")!;
-runIterButton.onclick = runIterationFromButton;
 
-var animateButton = document.getElementById("animate")!;
-animateButton.onclick = toggleAnimation;
+    //==================================================================================================================
 
-var resetIFSButton = document.getElementById("resIFS")!;
-resetIFSButton.onclick = resetIFS;
+    // Run an iteration.
+    var runIterButton = document.getElementById("runIter")!;
+    runIterButton.onclick = () => { animator.runIterationWithCooldown(); }
 
-var resetIFSModalButton = document.getElementById("resIFSModal")!;
-resetIFSModalButton.onclick = resetIFS;
+    // Toggle animation.
+    animateButton.onclick = () => { animator.toggleAnimation() };
 
-var ifsModalOpenButton = document.getElementById("ifsModalOpen")!;
-ifsModalOpenButton.onclick = activateParamCanvas;
+    // Reset the IFS.
+    var resetIFSButton = document.getElementById("resIFS")!;
+    resetIFSButton.onclick = resetIFS;
 
-var changeDimensionButton = document.getElementById("changeDim")!;
-changeDimensionButton.onclick = changeDimension;
+    // Reset IFS from the parameter modal.
+    var resetIFSModalButton = document.getElementById("resIFSModal")!;
+    resetIFSModalButton.onclick = resetIFS;
 
-var clearCellsButton = document.getElementById("clearCells")!;
-clearCellsButton.onclick = clearCells;
+    // Open the parameter modal.
+    var ifsModalOpenButton = document.getElementById("ifsModalOpen")!;
+    ifsModalOpenButton.onclick = activateParamCanvas;
 
-var fillCellsButton = document.getElementById("fillCells")!;
-fillCellsButton.onclick = fillCells;
+    // Change the dimension of the parameter modal.
+    var changeDimensionButton = document.getElementById("changeDim")!;
+    changeDimensionButton.onclick = changeDimension;
+
+    // Clear the cells on the parameter modal.
+    var clearCellsButton = document.getElementById("clearCells")!;
+    clearCellsButton.onclick = () => { ifsParamSelector.clearCells() };
+
+    // Fill the cells on the parameter modal.
+    var fillCellsButton = document.getElementById("fillCells")!;
+    fillCellsButton.onclick = () => { ifsParamSelector.fillCells() };
+
+    //==================================================================================================================
+
+//======================================================================================================================
+// END BUTTON SETUP
+//======================================================================================================================

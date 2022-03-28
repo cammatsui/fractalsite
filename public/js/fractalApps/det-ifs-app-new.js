@@ -5,16 +5,14 @@
  * @date December 2021.
  */
 // IMPORTS
-import { DrawingCanvas } from './interfaces/drawing.js';
-import { DeterministicIFS } from '../fractals/det-ifs.js';
-import { presetIFS } from '../etc/preset-ifs.js';
-import { Animator } from '../etc/animation.js';
-import { AffineTable } from './interfaces/affine-table.js';
+import { DrawingCanvas } from '../etc/drawing.js';
+import { AffineTable, DeterministicIFS } from '../fractals/det-ifs-new.js';
+import { presetIfs } from '../etc/presetIfs.js';
 //======================================================================================================================
 //======================================================================================================================
 // SETUP
 //======================================================================================================================
-// Calculate the max dimension for the fractal canvas.
+// The max dimension for the fractal canvas.
 const maxCanvasDimension = Math.floor(Math.min(window.innerWidth * .85, window.innerHeight * .85));
 // Get the canvas to draw on, and set up the DrawingCanvas object.
 const drawingCanvas = document.getElementById("drawing-canvas");
@@ -26,14 +24,13 @@ fractalCanvas.width = maxCanvasDimension;
 const fractalCtx = fractalCanvas.getContext("2d");
 // Setup the affine table.
 const affineTable = new AffineTable(document.getElementById("affineTable"));
+// Initialize variables for animation.
+let intervalID = 0;
+let warned = false;
+let iterationEnabled = true;
 // Setup the fractal canvas' initial content and create the intial ifs.
 let ifs = new DeterministicIFS(fractalCanvas, affineTable, 0, 1);
-// Setup the animation.
-let iterationsHTML = document.getElementById("numIters");
-let animateButton = document.getElementById("animate");
-let warning = "Warning: maximum recommended iterations reached based on your screen resolution. " +
-    "Proceeding may cuase IFS to fade.";
-let animator = new Animator(ifs, animateButton, warning, iterationsHTML);
+resetIFS();
 //======================================================================================================================
 // END SETUP
 //======================================================================================================================
@@ -42,13 +39,22 @@ let animator = new Animator(ifs, animateButton, warning, iterationsHTML);
 //======================================================================================================================
 //==================================================================================================================
 /**
- * Reset the IFS. Resets both the ifs itself as well as the canvas and animator.
+ * Reset the IFS. Resets both the ifs itself as well as the canvas.
  */
 function resetIFS() {
+    warned = false;
     ifs = new DeterministicIFS(fractalCanvas, affineTable, 0, 1);
-    animator = new Animator(ifs, animateButton, warning, iterationsHTML);
-    iterationsHTML.innerHTML = "Iterations: 0";
+    updateIterations();
 } // resetIFS ()
+//==================================================================================================================
+//==================================================================================================================
+/**
+ * Update the iterations HTML so that the correct number is displayed.
+ */
+function updateIterations() {
+    let iterationsHTML = document.getElementById("numIters");
+    iterationsHTML.innerHTML = "Iterations: " + ifs.numIters;
+} // updateIterations ()
 //==================================================================================================================
 //==================================================================================================================
 /**
@@ -74,6 +80,76 @@ function moveDrawing() {
 //==================================================================================================================
 //==================================================================================================================
 /**
+ * Run an iteration of the IFS while accounting for max iterations.
+ */
+function runIteration() {
+    // If not warned but IFS has iterated too much, warn and don't iterate.
+    if (ifs.numIters > ifs.maxIters && !warned) {
+        if (intervalID != 0)
+            toggleAnimation();
+        alert("Warning: maximum recommended iterations reached based on your screen resolution. " +
+            "Proceeding may cuase IFS to fade.");
+        warned = true;
+    }
+    else {
+        // Otherwise, just iterate.
+        ifs.iterate();
+        updateIterations();
+    }
+} // runIteration ()
+//==================================================================================================================
+//==================================================================================================================
+/**
+ * Run an iteration only after checking that animation is not running and iteration is enabled.
+ */
+function runIterationButton() {
+    // Don't run an iteration if the cooldown has not expired or the animation is running.
+    if (!iterationEnabled || intervalID != 0)
+        return;
+    runIteration();
+    iterationEnabled = false;
+    // Set a cooldown based on the number of iterations that the ifs needs.
+    let cooldown = ifs.calculateCooldown();
+    setTimeout(() => { iterationEnabled = true; }, cooldown);
+} // runIterationButton ()
+//==================================================================================================================
+//==================================================================================================================
+/**
+ * Start the animation.
+ */
+function startAnimation(ms) {
+    intervalID = setInterval(() => { runIteration(); }, ms);
+} // startAnimation ()
+//==================================================================================================================
+//==================================================================================================================
+/**
+ * Stop the animation.
+ */
+function stopAnimation() {
+    clearInterval(intervalID);
+    intervalID = 0;
+} // stopAnimation ()
+//==================================================================================================================
+//==================================================================================================================
+/**
+ * Toggle the animation on / off.
+ */
+function toggleAnimation() {
+    if (intervalID != 0) {
+        // Animation is running, so stop it.
+        animateButton.innerHTML = "Start Animation";
+        stopAnimation();
+        iterationEnabled = true;
+    }
+    else {
+        animateButton.innerHTML = "Stop Animation";
+        startAnimation(ifs.calculateCooldown());
+        iterationEnabled = false;
+    }
+} // toggleAnimation ()
+//==================================================================================================================
+//==================================================================================================================
+/**
  * Resize the drawing canvas to the appropriate size.
  */
 function resizeDrawingCanvas() {
@@ -95,12 +171,12 @@ function activateDrawingCanvas() {
 //==================================================================================================================
 //==================================================================================================================
 /**
- * Load the preset ifs with the given name from the "presetIFS.js" file.
+ * Load the preset ifs with the given name from the "presetIfs.js" file.
  */
 function getPresetIFS(name) {
     // By default, use the Sierpinski Gasket.
-    let ifs = presetIFS[0].ifs;
-    presetIFS.every(preset => {
+    let ifs = presetIfs[0].ifs;
+    presetIfs.every(preset => {
         if (preset.name == name) {
             ifs = preset.ifs;
             return false;
@@ -126,7 +202,6 @@ function setPresetIFS(ifs) {
 //======================================================================================================================
 //==================================================================================================================
 // DRAWING BUTTONS
-// Set pen colors.
 var colorButtonBlack = document.getElementById("color-btn-black");
 colorButtonBlack.onclick = () => setPenColor('black');
 var colorButtonRed = document.getElementById("color-btn-red");
@@ -146,32 +221,24 @@ drawingModalOpenButton.onclick = activateDrawingCanvas;
 //==================================================================================================================
 //==================================================================================================================
 // FRACTAL BUTTONS
-// Blank the affine table.
 var blankTableButton = document.getElementById("blankTable");
 blankTableButton.onclick = () => { affineTable.clear(); };
-// Run an iteration.
 var runIterButton = document.getElementById("runIter");
-runIterButton.onclick = () => { animator.runIterationWithCooldown(); };
-// Toggle animation.
-animateButton.onclick = () => { animator.toggleAnimation(); };
-// Add a row to the affine table.
+runIterButton.onclick = runIterationButton;
+var animateButton = document.getElementById("animate");
+animateButton.onclick = toggleAnimation;
 var addRowButton = document.getElementById("addRow");
 addRowButton.onclick = () => { affineTable.addRow(); };
-// Delete a row from the affine table.
 var delRowButton = document.getElementById("delRow");
 delRowButton.onclick = () => { affineTable.deleteLastRow(); };
-// Reset the IFS from the table.
 var resetIFSButton = document.getElementById("resIFS");
 resetIFSButton.onclick = resetIFS;
-// Move the drawing.
 var moveDrawingButton = document.getElementById("moveDr");
 moveDrawingButton.onclick = moveDrawing;
-// Reset the drawing.
 var resetButton = document.getElementById("resetDr");
 resetButton.onclick = resetIFS;
-// Set options and event listeners for the preset dropdown menu.
-var presetIFSOptions = document.getElementById("ifsDropDown");
-var options = Array.from(presetIFSOptions.getElementsByTagName("a"));
+var presetIfsOptions = document.getElementById("ifsDropDown");
+var options = Array.from(presetIfsOptions.getElementsByTagName("a"));
 options.forEach(option => {
     option.onclick = () => setPresetIFS(getPresetIFS(option.innerHTML));
 });

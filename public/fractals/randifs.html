@@ -61,34 +61,62 @@
                 <div class="modal-body">
                     <div class="card-body">
 
+                        <div class="dropdown mb-3">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="ifsDropDownButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                Choose Preset...
+                            </button>
+                            <ul id="ifsDropDown" class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                <li><a class="dropdown-item" href="#">Sierpinski Gasket</a></li>
+                                <li><a class="dropdown-item" href="#">Sierpinski Carpet</a></li>
+                                <li><a class="dropdown-item" href="#">Koch Curve</a></li>
+                            </ul>
+                        </div>
+
                         <div id="table" class="table-editable" style="table-layout: fixed;">
                         <table id="affineTable" class="table table-bordered table-md table-striped text-center">
                             <thead>
                                 <tr>
                                     <th class="text-center">r</th>
+                                    <th class="text-center">s</th>
+                                    <th class="text-center">θ</th>
+                                    <th class="text-center">φ</th>
                                     <th class="text-center">e</th>
                                     <th class="text-center">f</th>
+                                    <th class="text-center">p</th>
                                 </tr>
                             </thead>
                             <tbody>
                             <tr>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">1</td>
                             </tr>
                             <tr>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">1</td>
                             </tr>
                             <tr>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0</td>
                                 <td class="pt-3-half" contenteditable="true" style="width:10%">0.5</td>
+                                <td class="pt-3-half" contenteditable="true" style="width:10%">1</td>
                             </tr>
                             </tbody>
                         </table>
                         </div>
+
                     </div>
                 </div>
 

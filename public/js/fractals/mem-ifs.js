@@ -6,10 +6,10 @@
  */
 //======================================================================================================================
 //======================================================================================================================
+/**
+ * A class representing an IFS With Memory.
+ */
 export class IFSWithMemory {
-    //==================================================================================================================
-    //==================================================================================================================
-    // INSTANCE METHODS
     //==================================================================================================================
     //==================================================================================================================
     /**
@@ -19,13 +19,19 @@ export class IFSWithMemory {
      * @param memParams A MemIFSParamCanvas to get the parameters for the IFS.
      */
     constructor(fractalCanvas, memParams) {
-        this.shouldWarn = false;
+        /* The amount of time (in ms) to wait between iterations. */
+        this.ANIMATION_COOLDOWN = 800;
+        /* The number of iterations that have been run on this IFSWithMemory. */
+        this.numIters = 0;
+        /* How many iterations are possible before disintegration. */
+        this.maxIters = Number.MAX_VALUE;
+        /* The allowed addresses for the current iteration. */
+        this.currentAddresses = [];
+        /* The base disallowed addresses. */
+        this.baseDisallowedAddresses = new Set();
         this.canvas = fractalCanvas;
         this.ctx = fractalCanvas.getContext("2d");
         this.memParams = memParams;
-        this.numIters = 0;
-        this.currentAddresses = [];
-        this.baseDisallowedAddresses = new Set();
         this.clearCanvas();
         this.collectBaseAddresses();
         this.setCanvas();
@@ -38,6 +44,7 @@ export class IFSWithMemory {
     collectBaseAddresses() {
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 4; j++) {
+                // For 2d.
                 if (this.memParams.is2D) {
                     var address = "" + (i + 1) + "" + (j + 1);
                     if (this.memParams.matrix2D[i][j])
@@ -46,6 +53,7 @@ export class IFSWithMemory {
                         this.baseDisallowedAddresses.add(address);
                 }
                 else {
+                    // For 3d.
                     for (var k = 0; k < 4; k++) {
                         var address = "" + (i + 1) + "" + (j + 1) + "" + (k + 1);
                         if (this.memParams.matrix3D[i][j][k])
@@ -60,9 +68,17 @@ export class IFSWithMemory {
     //==================================================================================================================
     //==================================================================================================================
     /**
+     * Return the cooldown for an animation (the time between iterations, in ms).
+     */
+    calculateCooldown() {
+        return this.ANIMATION_COOLDOWN;
+    } // calculateCooldown
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
      * Apply an iteration of the IFS.
      */
-    applyTransform() {
+    iterate() {
         this.numIters++;
         this.clearCanvas();
         if (this.numIters == 1) {
@@ -124,12 +140,13 @@ export class IFSWithMemory {
     //==================================================================================================================
     /**
      * Draw a square at the given address.
-     *
-     * @param address The address to draw at.
      */
     drawAddress(address) {
+        // The coordinates for the top left (tL) and bottom right (bR) of the fractal canvas.
+        // These become the corresponding coordinates of the square to draw at the given address.
         var tL = { x: 0, y: 0 };
         var bR = { x: this.canvas.width, y: this.canvas.height };
+        // Loop through the addresses and recalculate coordinates based on the address value.
         for (var i = 0; i < address.length; i++) {
             var mid = { x: (tL.x + bR.x) / 2, y: (tL.y + bR.y) / 2 };
             switch (address.charAt(i)) {
@@ -164,10 +181,10 @@ export class IFSWithMemory {
         var toAdd = this.memParams.is2D ? 1 : 2;
         var numRows = 2 ** (this.numIters + toAdd);
         var rowWidth = this.canvas.width / numRows;
-        // Vertical bars
+        // Draw vertical bars.
         for (var x = 0; x <= this.canvas.width; x += rowWidth)
             this.drawLine(x, 0, x, this.canvas.height);
-        // Horizontal bars
+        // Draw horizontal bars.
         for (var y = 0; y <= this.canvas.width; y += rowWidth)
             this.drawLine(0, y, this.canvas.width, y);
     } // drawGrid ()
@@ -175,31 +192,22 @@ export class IFSWithMemory {
     //==================================================================================================================
     /**
      * Draw a line from the coordinates (tx, ty) to (bx, by).
-     *
-     * @param tx The x coordinate of the start point for the line.
-     * @param ty The y coordinate of the start point for the line.
-     * @param bx The x coordinate of the end point for the line.
-     * @param by The y coordinate of the end point for the line.
      */
     drawLine(tx, ty, bx, by) {
         this.ctx.beginPath();
         this.ctx.moveTo(tx, ty);
         this.ctx.lineTo(bx, by);
         this.ctx.stroke();
-    } // drawLine();
+    } // drawLine ()
     //==================================================================================================================
     //==================================================================================================================
     /**
      * Draw a square with the given coordinates.
-     *
-     * @param tx The x coordinate of the top left corner.
-     * @param ty The y coordinate of the top left corner.
-     * @param bx The x coordinate of the bottom right corner.
-     * @param by The y coordinate of the bottom right corner.
      */
     drawSquare(tx, ty, bx, by) {
         if (bx - tx < 1.2) {
-            this.shouldWarn = true;
+            // Toggle warning.
+            this.maxIters = this.numIters;
         }
         this.ctx.beginPath();
         this.ctx.rect(tx, ty, bx - tx, by - ty);

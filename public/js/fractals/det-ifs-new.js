@@ -8,6 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 //======================================================================================================================
+/**
+ * @file det-ifs.ts
+ * @author Cameron Matsui (cmatsui22@amherst.edu)
+ * @date December 2021.
+ */
+// IMPORTS
+import { AffineTransform } from "./affine-transform.js";
+//======================================================================================================================
 //======================================================================================================================
 /**
  * A class representing a Deterministic Iterated Function System (IFS).
@@ -15,14 +23,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 export class DeterministicIFS {
     //==================================================================================================================
     //==================================================================================================================
-    // INSTANCE METHODS
-    //==================================================================================================================
-    //==================================================================================================================
     /**
      * The constructor for a DeterministicIFS. The parameters a and b give the region [a,b]^2 to draw the fractal in.
      */
     constructor(canvas, affineTable, a, b) {
-        /* The current number of iterations. */
+        /* THe current number of iterations. */
         this.numIters = 0;
         /* The delay (in ms) between applying each affine transform in animation. */
         this.AFFINE_DELAY = 220;
@@ -30,7 +35,6 @@ export class DeterministicIFS {
         this.START_COLOR = "blue";
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
-        this.resetCanvas();
         let affineTransforms = this.calibrateAffineTransforms(affineTable.collectTransforms(), a, b);
         this.maxIters = this.computeMaxIterations(affineTransforms);
         // Get an inverted matrix for each affine transform.
@@ -44,6 +48,7 @@ export class DeterministicIFS {
             }
             this.invertedMatrices.push(invT);
         });
+        this.resetCanvas();
     } // constuctor ()
     //==================================================================================================================
     //==================================================================================================================
@@ -258,4 +263,137 @@ export class DeterministicIFS {
         return min;
     } // findMinScalingFactor ()
 } // class DeterministicIFS
+//======================================================================================================================
+//======================================================================================================================
+/**
+ * The AffineTable class wraps an HTML table which allows the user to change an IFS.
+ */
+export class AffineTable {
+    //==================================================================================================================
+    //==================================================================================================================
+    // INSTANCE METHODS
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * The constructor for the AffineTable.
+     */
+    constructor(table) {
+        this.table = table;
+    } // constructor ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Parse the table's HTML to create the corresponding array of AffineTransforms.
+     */
+    collectTransforms() {
+        let affineParams = [];
+        for (var i = 1; i < this.table.rows.length; i++) {
+            let rawRow = this.table.rows[i];
+            let numberRow = [];
+            for (var j = 0; j < this.table.rows[0].cells.length; j++) {
+                let cellHTML = rawRow.cells[j].innerHTML;
+                let nextParam = cellHTML == "0" ? 0 : AffineTable.parseTableEntry(rawRow.cells[j].innerText);
+                numberRow.push(nextParam);
+            }
+            affineParams.push(new AffineTransform(numberRow[0], numberRow[1], numberRow[2], numberRow[3], numberRow[4], numberRow[5]));
+        }
+        return affineParams;
+    } // collectTransforms ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Add a row to the table.
+     */
+    addRow() {
+        let newRow = this.table.insertRow(this.table.rows.length);
+        for (var i = 0; i < this.table.rows[0].cells.length; i++) {
+            this.styleCell(newRow.insertCell(i)); // Insert a cell and style it to match the table.
+        }
+    } // addRow ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Delete the last row of the table, or blank it out if there is only one remaining.
+     */
+    deleteLastRow() {
+        if (this.table.rows.length > 2) { // Make sure we have at least one editable row remaining.
+            this.table.deleteRow(this.table.rows.length - 1);
+            return;
+        }
+        // If not more than one remaining, blank out last row.
+        let firstRow = this.table.rows[1];
+        for (var i = 0; i < firstRow.cells.length; i++) {
+            this.styleCell(firstRow.cells[i]);
+        }
+    } // deleteLastRow ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Clear the table such that only one editable, but blanked, row remains.
+     */
+    clear() {
+        while (this.table.rows.length > 2)
+            this.deleteLastRow();
+        this.deleteLastRow();
+    } // clear ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Update the table to match the given preset ifs, provided as a list of affine transformations.
+     */
+    applyPreset(transforms) {
+        // Set the number of rows to the number of affine transforms.
+        this.setNumRows(transforms.length);
+        // Set the table entries to match the given transforms.
+        for (var i = 1, row; row = this.table.rows[i]; i++) {
+            row.cells[0].innerHTML = "" + transforms[i - 1].r;
+            row.cells[1].innerHTML = "" + transforms[i - 1].s;
+            row.cells[2].innerHTML = "" + transforms[i - 1].theta;
+            row.cells[3].innerHTML = "" + transforms[i - 1].phi;
+            row.cells[4].innerHTML = "" + transforms[i - 1].e;
+            row.cells[5].innerHTML = "" + transforms[i - 1].f;
+        }
+    } // applyPreset ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Set the number of rows for the table.
+     */
+    setNumRows(num) {
+        let rowDifferential = num - (this.table.rows.length - 1);
+        for (var i = 0; i < Math.abs(rowDifferential); i++) {
+            if (rowDifferential < 0)
+                this.deleteLastRow();
+            else
+                this.addRow();
+        }
+    } // setNumRows ()
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Style a given cell to have the default value of "0", be editeable, and have the same height as previous rows'
+     * cells.
+     */
+    styleCell(cell) {
+        cell.style.height = "" + this.table.rows[0].offsetHeight; // Set the height to be the same as the first row.
+        cell.contentEditable = "true";
+        cell.innerHTML = "0";
+    } // styleCell
+    //==================================================================================================================
+    //==================================================================================================================
+    // STATIC METHODS
+    //==================================================================================================================
+    //==================================================================================================================
+    /**
+     * Convert an entry entered by a user into a number.
+     */
+    static parseTableEntry(html) {
+        if (html.includes("/")) {
+            // Text is a fraction; parse as such.
+            let frac = html.replace(/\s/g, "").split('/');
+            return (+frac[0] / (+frac[1]));
+        }
+        return (+html.replace(/\s/g, ""));
+    } // parseTableEntry ()
+} // class AffineTable
 //======================================================================================================================

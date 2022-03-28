@@ -25,7 +25,7 @@ export class MemIFSParamCanvas {
     readonly ctx: CanvasRenderingContext2D;
 
     /* whether we're in 2d or 3d mode. */
-    is2D: boolean;
+    is2D = true;
     
     /* The boolean matrix representing the state of the 2D parameters. */
     matrix2D = [[true, true, true, true],
@@ -52,10 +52,10 @@ export class MemIFSParamCanvas {
                  [true, true, true, true]]];
 
     /* The width of a 2D cell on the canvas. */ 
-    private inc;
+    private inc = 0;
 
     /* The width on the canvas to add row/column labels. */
-    private labelBufferWidth;
+    private labelBufferWidth = 0;
 
     //==================================================================================================================
     // INSTANCE METHODS
@@ -72,9 +72,6 @@ export class MemIFSParamCanvas {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
         this.ctx.fillStyle = "blue";
-        this.is2D = true;
-        this.inc = 0;
-        this.labelBufferWidth = 0;
         this.initializeCanvas();
     } // constructor ()
     //==================================================================================================================
@@ -153,6 +150,7 @@ export class MemIFSParamCanvas {
                 else this.draw3DCells(row, col);
             }
         }
+
         this.drawLabels();
         if (!this.is2D) this.draw3DLabels();
     } // drawGrid ()
@@ -186,20 +184,25 @@ export class MemIFSParamCanvas {
         var curX = this.labelBufferWidth + 0.5*this.inc;
         var curY = 1/2 * this.labelBufferWidth;
         this.ctx.fillStyle = 'black';
-        // columns
+
+        // Draw colunn labels.
         for (var i = 1; i <= 4; i++) {
             this.ctx.font = '24px sans-serif';
             this.ctx.fillText("" + i, curX-12, curY+12);
             curX += this.inc;
         }
+
         curX = 1/2 * this.labelBufferWidth;
         curY = this.labelBufferWidth + 0.5*this.inc;
-        // rows
+
+        // Draw row labels.
         for (var i = 1; i <= 4; i++) {
             this.ctx.font = '24px sans-serif';
             this.ctx.fillText("" + i, curX-12, curY+12);
             curY += this.inc;
         }
+
+        // Reset the fill style.
         this.ctx.fillStyle = 'blue';
     } // drawLabels ()
     //==================================================================================================================
@@ -231,11 +234,16 @@ export class MemIFSParamCanvas {
      * @param col The column of the 3d cells.
      */
     private draw3DCells(row: number, col: number) {
+
         this.clearCell(row, col);
         var inc3D = this.inc * (1/6);
+
+        // Draw the outside cell.
         this.ctx.beginPath();
         this.ctx.rect(row*this.inc + this.labelBufferWidth, col*this.inc + this.labelBufferWidth, this.inc, this.inc);
         this.ctx.stroke();
+
+        // Draw the four inside cells.
         for (var i = 3; i >= 0; i--) {
             this.ctx.beginPath();
             this.ctx.rect(row*this.inc + (i+0.5)*inc3D + this.labelBufferWidth, 
@@ -244,7 +252,9 @@ export class MemIFSParamCanvas {
             this.ctx.fill();
             this.ctx.stroke();
         }
+
         this.draw3DLabels();
+
     } // draw3DCells()
     //==================================================================================================================
 
@@ -252,9 +262,6 @@ export class MemIFSParamCanvas {
     //==================================================================================================================
     /**
      * Clear the cell at the given row/column position.
-     * 
-     * @param row The row of the cell to clear.
-     * @param col The column of the cell to clear.
      */
     private clearCell(row: number, col: number) {
         this.ctx.clearRect(row*this.inc+this.labelBufferWidth, col*this.inc+this.labelBufferWidth, this.inc, this.inc);
@@ -281,20 +288,23 @@ export class MemIFSParamCanvas {
     /**
      * Parse a click event by finding the corresponding row/column. Then hands the logic to toggleCell() to update the 
      * canvas and the underlying matrix.
-     * 
-     * @param event The event to parse.
      */
     private parseClick(event: MouseEvent) {
+
         var rect = this.canvas.getBoundingClientRect();
         var clickX = event.clientX - rect.left - this.labelBufferWidth;
         var clickY = event.clientY - rect.top - this.labelBufferWidth;
+        // Return if outside of the selectable part of the canvas.
         if (clickX < 0 || clickY < 0) return;
+
+        // Calculate the row and column which was clicked on.
         var row = Math.floor(clickX / this.inc);
         var col = Math.floor(clickY / this.inc);
+
         if (this.is2D) {
             this.toggle2DCell(row, col);
         } else {
-            // Calculate the 3d cell to activate.
+            // Calculate the 3d cell to activate based on the click coordinates.
             var cellX = clickX % this.inc - (1/12)*this.inc;
             var cellY = clickY % this.inc - (1/12)*this.inc;
             if (cellX > (10/12)*this.inc || cellY > (10/12)*this.inc || cellX < 0 || cellY < 0) return;
@@ -332,9 +342,6 @@ export class MemIFSParamCanvas {
     //==================================================================================================================
     /**
      * Toggle the given cell on/off by updating the canvas and change the value in matrix2D.
-     * 
-     * @param row The row of the cell.
-     * @param col The column of the cell.
      */
     private toggle2DCell(row: number, col: number) {
         var numCellsSide = 3;
@@ -348,10 +355,7 @@ export class MemIFSParamCanvas {
     //==================================================================================================================
     /**
      * Toggle the given cell on/off by updating the canvas and change the value in matrix3D.
-     * 
-     * @param row The row of the cell.
-     * @param col The column of the cell.
-     * @param d The "depth" of the cell (0, 1, 2, 3)
+     * d is the "depth" of the cell.
      */
     private toggle3DCell(row: number, col: number, d: number) {
         var numCellsSide = 3;
